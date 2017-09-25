@@ -17,20 +17,23 @@ import {
 } from 'react-native';
 
 import common, {jiami,postJson} from './common';
-import ModalDropdown from 'react-native-modal-dropdown';
+// import ModalDropdown from 'react-native-modal-dropdown';
+import CheckBox from './my_component/CheckBox.js'
 import main from './main';
   
 export default class login extends Component {
 
-    static account='';
+    static account='future0005';
+    static type=1;
     static navigator=''
     constructor(props){
         super(props);
         this.state=({
-            type: 1,
            // account: '',
-            password: '',
-            token: ''
+            password: '123456',
+            token: '',
+            superAccount: true,
+            subAccount: false
         });
         // console.log(this.props);
         // console.log(this.props.navigator);
@@ -73,6 +76,31 @@ export default class login extends Component {
                     }}
                 />
                 <View style={{height:1,backgroundColor:'#f4f4f4'}}/>
+                <View style={{marginTop:20,height:20,width:100, marginLeft:100}}>
+                    <CheckBox
+                            text='  管理员'
+                            checked={this.state.superAccount}
+                            textAtBehind={true}
+                            func={(checked)=>{
+                                this.setState({
+                                    superAccount: checked,
+                                    subAccount: !checked
+                                });
+                            }}
+                    />
+                </View>
+                <View style={{marginTop:-20,height:20,width:100,marginLeft:200}}>
+                    <CheckBox text='  子账号'
+                            checked={this.state.subAccount}
+                            textAtBehind={true}
+                            func={(checked)=>{
+                                this.setState({
+                                    superAccount: !checked,
+                                    subAccount: checked
+                                });
+                            }}
+                    />
+                 </View>
                 <TouchableHighlight
                  // <Text>账号类型</Text>
                 // <ModalDropdown options={['超级账号', '子账号']}/>
@@ -95,18 +123,18 @@ export default class login extends Component {
                         //     ]
                         // );
                         //console.log(' PWD '+jiami(this.password));
+                        login.type=this.state.superAccount?1:0;
                         var json=new Object();
-                            json.type=this.state.type;
+                            json.type=login.type;
                             json.account=login.account;
                             json.password=jiami(this.state.password);
-                        
                         postJson('http://www.rudolphsmartt.com:8080/UIDesigner/authAction_getToken.do',json,{},function (res) {
                             //console.log(res);
                             if(res.errorcode==0){
                                 console.log("获取有token成功",res);
                                 //console.log(res.data.token);
                                 var json1=new Object();
-                                json1.type=1;
+                                json1.type=login.type;
                                 // json1.account=this.state.account;
                                // console.log("account "+login.account);
                                 json1.account=login.account;
@@ -123,10 +151,7 @@ export default class login extends Component {
                                             name:'SecondPageComonent',
                                             component:main,
                                             params:{
-                                                message: res1.data.nickname,
-                                                getResult:function(myMessage){
-                                                    console.log(myMessage);
-                                                }
+                                                message: JSON.stringify(res1)//.data.nickname
                                             }
                                         });
                             

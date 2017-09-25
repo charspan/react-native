@@ -1,53 +1,39 @@
-'use strict';
-
-var React = require('react-native');
-var ReactPropTypes = React.PropTypes;
-
-var {
+import React, { Component,PropTypes } from 'react';
+import { 
     StyleSheet,
     View,
     Text,
     Image,
     TouchableHighlight
-    } = React;
+} from 'react-native';
 
-var CheckBox = React.createClass({
-    //属性类型：
-    propTypes:{
-        text: ReactPropTypes.string,
-        textStyle: ReactPropTypes.object,
-        textAtBehind: ReactPropTypes.bool,
-        checked: ReactPropTypes.bool,
-        onClick: ReactPropTypes.func
-    },
+export default class CheckBox extends Component{
 
     //默认属性(框在前，字在后，未选中,无点击事件)
-    getDefaultProps(){
-        return{
-            text: '选项1',
-            textAtBehind: true,
-            checked: false
-        }
-    },
+    static defaultProps={
+        text: '选项1',
+        textAtBehind: true,
+        checked: false,
+        func: ()=>{console.log('默认方法');}
+    }
 
-    //点击选择框的事件
-    onClick(){
-        if(this.props.onClick){
-            this.props.onClick(!this.props.checked);
-        }
-    },
-
-
+     //属性类型：
+    static propTypes={
+        text: PropTypes.string,
+        textStyle: PropTypes.object,
+        textAtBehind: PropTypes.bool,
+        checked: PropTypes.bool,
+        func: PropTypes.func
+     };
+     
     render(){
-
         //选择框的图片
         var imgSource;
         if(this.props.checked){
-            imgSource = require('../assets/images/checkbox_enabled.png');
+            imgSource = require('./img/checkbox_enabled.png');
         }else{
-            imgSource = require('../assets/images/checkbox_disabled.png');
+            imgSource = require('./img/checkbox_disabled.png');
         }
-
         //文字跟可选框位置
         var container;
         if(this.props.textAtBehind){
@@ -76,16 +62,19 @@ var CheckBox = React.createClass({
 
         return(
             <TouchableHighlight
-                onPress = {this.onClick}
+                onPress = {()=>{
+                    console.log(this.props);
+                    this.props.func(true);
+                }}
                 underlayColor='white' >
                 {container}
             </TouchableHighlight>
         );
     }
 
-});
+}
 
-var styles = StyleSheet.create({
+const styles = StyleSheet.create({
     container:{
         flexDirection: 'row',
         alignItems: 'center',
@@ -103,5 +92,3 @@ var styles = StyleSheet.create({
         fontSize: 15
     }
 });
-
-module.exports = CheckBox;
