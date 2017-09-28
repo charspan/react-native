@@ -1,12 +1,5 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
-
-import React, {Component} from 'react';  
-import {  
-    AppRegistry,  
+import React, {Component} from 'react';
+import {
     StyleSheet,  
     Text,  
     Image,  
@@ -15,28 +8,23 @@ import {
     TouchableHighlight,
     Alert
 } from 'react-native';
-
-import common, {jiami,postJson} from './common';
-// import ModalDropdown from 'react-native-modal-dropdown';
-import CheckBox from './my_component/CheckBox.js'
-import main from './main';
+//npm start -- --reset-cache
+import {base_url,getRandomNum,jiami,httpPostJson,httpGet} from './common';
+import CheckBox from './my_component/CheckBox.js';
+import superAccountIndex from './superAccountIndex';
   
 export default class login extends Component {
 
     static account='future0005';
     static type=1;
-    static navigator=''
+    static navigator;
     constructor(props){
         super(props);
         this.state=({
-           // account: '',
             password: '123456',
             token: '',
-            superAccount: true,
-            subAccount: false
+            accountType: true
         });
-        // console.log(this.props);
-        // console.log(this.props.navigator);
         login.navigator=this.props.navigator;
     };
     render() {  
@@ -49,15 +37,12 @@ export default class login extends Component {
                     style={styles.style_user_input}
                     placeholder='账号'
                     numberOfLines={1}
-                    autoFocus={true}
+                    // autoFocus={true}
                     underlineColorAndroid={'transparent'}
                     textAlign='center'
                     defaultValue='future0005'
                     onChangeText={(text) => {
                         login.account=text
-                        // this.setState({
-                        //     account: text
-                        // });
                     }}
                 />  
                 <View style={{height:1,backgroundColor:'#f4f4f4'}}/>
@@ -79,31 +64,27 @@ export default class login extends Component {
                 <View style={{marginTop:20,height:20,width:100, marginLeft:100}}>
                     <CheckBox
                             text='  管理员'
-                            checked={this.state.superAccount}
+                            checked={this.state.accountType}
                             textAtBehind={true}
-                            func={(checked)=>{
+                            func={()=>{
                                 this.setState({
-                                    superAccount: checked,
-                                    subAccount: !checked
+                                    accountType: true
                                 });
                             }}
                     />
                 </View>
                 <View style={{marginTop:-20,height:20,width:100,marginLeft:200}}>
                     <CheckBox text='  子账号'
-                            checked={this.state.subAccount}
+                            checked={!this.state.accountType}
                             textAtBehind={true}
-                            func={(checked)=>{
+                            func={()=>{
                                 this.setState({
-                                    superAccount: !checked,
-                                    subAccount: checked
+                                    accountType: false
                                 });
                             }}
                     />
-                 </View>
+                </View>
                 <TouchableHighlight
-                 // <Text>账号类型</Text>
-                // <ModalDropdown options={['超级账号', '子账号']}/>
                     style={styles.style_view_commit}
                     activeOpacity={0.5}
                     underlayColor='#63BFFF'
@@ -114,52 +95,76 @@ export default class login extends Component {
                         this.setState({text:'衬底显示'})
                     }}
                     onPress={()=>{
-                        // Alert.alert(
-                        //     '提示',
-                        //     '您输入的账号是:'+this.account+"\n"+'您输入的密码是:'+this.password+"\n",
-                        //     [
-                        //         {text: '取消', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
-                        //         {text: '确定', onPress: () => console.log('OK Pressed')},
-                        //     ]
-                        // );
-                        //console.log(' PWD '+jiami(this.password));
-                        login.type=this.state.superAccount?1:0;
-                        var json=new Object();
-                            json.type=login.type;
-                            json.account=login.account;
-                            json.password=jiami(this.state.password);
-                        postJson('http://www.rudolphsmartt.com:8080/UIDesigner/authAction_getToken.do',json,{},function (res) {
-                            //console.log(res);
-                            if(res.errorcode==0){
-                                console.log("获取有token成功",res);
-                                //console.log(res.data.token);
-                                var json1=new Object();
-                                json1.type=login.type;
-                                // json1.account=this.state.account;
-                               // console.log("account "+login.account);
-                                json1.account=login.account;
-                                json1.token=res.data.token;
-                                postJson('http://www.rudolphsmartt.com:8080/UIDesigner/authAction_getSelfInfo.do',{},json1,function (res1) {
-                                    console.log(res1) ;
-                                    if(res1.errorcode==0){
-                                        console.log("获取有自身信息成功",res1);
-                                        // login.navigator.replace({
-                                        //     scene: main
-                                        // });
-                                        // 
-                                        login.navigator.replace({
-                                            name:'SecondPageComonent',
-                                            component:main,
-                                            params:{
-                                                message: JSON.stringify(res1)//.data.nickname
-                                            }
-                                        });
-                            
+                        login.type=this.state.accountType?1:0;
+                        // 获取系统时间戳
+                        httpGet(base_url+'timestamp/'+login.type+'/'+login.account,{randomCode : getRandomNum()},{},(res0)=>{
+                            //console.log('获取系统时间戳',res0);
+                            if(res0.errorcode==0){
+                                console.log("randomStr",res0.data.randomStr);
+                                console.log("timestamp",res0.data.timestamp);
+                                // 获取 token
+                                httpPostJson(
+                                    base_url+'tokens/'+ login.type+'/'+login.account,
+                                    {randomStr:res0.data.randomStr,timestamp:res0.data.timestamp,password:jiami(this.state.password)},
+                                    {},
+                                    (res1)=>{
+                                        //console.log('获取 token',res1);
+                                        if(res1.errorcode==0){
+                                            console.log('token',res1.data.token);
+                                            console.log('expiresTime',res1.data.expiresTime);
+                                            // 获取个人信息
+                                            httpGet(
+                                                base_url+'client/info',
+                                                {},
+                                                {type:login.type,account:login.account,token:res1.data.token},
+                                                (res2)=>{
+                                                    console.log('selfInfo',res2);
+                                                    if(res2.errorcode==0){
+                                                        if(login.accountType==0){// 子账号
+
+                                                        }else{// 超级账号
+                                                            // 采用替换当前场景
+                                                            login.navigator.replace({
+                                                                name: 'superAccountIndex',
+                                                                component: superAccountIndex,
+                                                                params:{
+                                                                    message: res2.data,
+                                                                    navigator: login.navigator
+                                                                }
+                                                            });
+                                                        }
+                                                    }else{
+                                                        Alert.alert(
+                                                            '提示',
+                                                            '验证信息失败',
+                                                            [
+                                                                {text: '确定', onPress: () => console.log('OK Pressed')},
+                                                            ]
+                                                        );
+                                                    }
+                                                }
+                                            );
+                                        }else{
+                                            Alert.alert(
+                                                '提示',
+                                                '您的密码有误',
+                                                [
+                                                    {text: '确定', onPress: () => console.log('OK Pressed')},
+                                                ]
+                                            );
+                                        }
                                     }
-                                });
+                                );
+                            }else{
+                                Alert.alert(
+                                    '提示',
+                                    '您的账号不存在',
+                                    [
+                                        {text: '确定', onPress: () => console.log('OK Pressed')},
+                                    ]
+                                );
                             }
                         });
-                        // console.log('state ',this.state.account);
                     }}
                 >
                     <View>

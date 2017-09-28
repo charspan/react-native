@@ -59,19 +59,17 @@ export default class CheckBox extends Component{
                 </View>
             );
         }
-
         return(
             <TouchableHighlight
                 onPress = {()=>{
-                    console.log(this.props);
-                    this.props.func(true);
+                    this.props.func();
                 }}
-                underlayColor='white' >
+                underlayColor='white'
+            >
                 {container}
             </TouchableHighlight>
         );
     }
-
 }
 
 const styles = StyleSheet.create({

@@ -5,6 +5,12 @@ export default class common extends Component{
 
 }
 
+export const base_url="http://www.rudolphsmart.com:8080/v2/";
+
+export function getRandomNum(){
+	return Math.ceil(Math.random()*999);
+}
+
 //导出方法
 function reverseString(str){
     return str.split('').reverse().join('');
@@ -21,16 +27,16 @@ function md5(str){
 // 加密操作
 export function jiami(str){
     str=md5(str);
-	var a = str.substring(0, 8);//1
-	a=reverseString(a);
-	var b = str.substring(8, 16);//2
-	var c = str.substring(16, 24);//3
-	var d = str.substring(24, 32);//4
-	d = reverseString(d);
-	return b + d + a + c;
+    var a = str.substring(0, 8);//1
+    var b = str.substring(8, 16);//2
+    b = reverseString(b);
+    var c = str.substring(16, 24);//3
+    var d = str.substring(24, 32);//4
+    d = reverseString(d);
+    return b + a + d + c;
 }
 
-export function postJson(url, data, header,callback) {
+export function httpPostJson(url, data, header,callback) {
     fetch(url, {
         method: 'POST',
         headers: {
@@ -48,24 +54,7 @@ export function postJson(url, data, header,callback) {
     }).done();
 }
 
-export function postJson1(url, data, header,callback) {
-    console.log("header1",header.type);
-    console.log("header2",header.account);
-    console.log("header3",header.token);
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'type' : header.type,
-            'account' : header.account,
-            'token' : header.token
-        }
-    })
-    .then((response) => {
-        callback(response);
-    }).done();
-}
-
-export function get(url,params,callback){
+export function httpGet(url,params,header,callback){
     if (params) {
         let paramsArray = [];
         //拼接参数
@@ -79,7 +68,16 @@ export function get(url,params,callback){
     //fetch请求
     fetch(url,{
         method: 'GET',
-    }).then((response) => {
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'type' : header.type,
+            'account' : header.account,
+            'token' : header.token
+        }
+    })
+    .then((response) => response.json())
+    .then((response) => {
         callback(response)
     }).done();
 }
