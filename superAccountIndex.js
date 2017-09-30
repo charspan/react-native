@@ -26,18 +26,14 @@ export default class superAccountIndex extends Component {
     super(props);
     this.state = {
       message: props.message,
-      type: props.type,
-      account: props.account,
-      token: props.token,
+      header: props.header,
       isSubAccountDetailShow: false,
       subAccountDetail: {},
       isSubAccountAddShow: false,
       newSubAccount_account: '',
       newSubAccount_relativeName: ''
     };
-    console.log(props.type);
-    console.log(props.account);
-    console.log(props.token);
+    console.log(props.header);
     superAccountIndex.navigator=props.navigator;
    // console.log(this.state.message);
   }
@@ -53,7 +49,7 @@ export default class superAccountIndex extends Component {
         <View tabLabel="ios-people" style={styles.firstTab}>
           <View style={styles.card}>
             <Text style={{fontSize:30}}>子账号管理</Text>
-            <TouchableOpacity // 点击显示新增子账号模态窗口
+            <TouchableOpacity // 点击显示新增子账号绑定关系模态窗口
               onPress={()=>{
                 this.setState({
                   isSubAccountAddShow: true
@@ -67,7 +63,7 @@ export default class superAccountIndex extends Component {
               }} source={require('./img/plus.png')} />
             </TouchableOpacity>
           </View>
-          <Modal // 新增子账号模态窗口
+          <Modal // 新增子账号绑定关系模态窗口
             visible={this.state.isSubAccountAddShow}
             //从下面向上滑动 slide
             //慢慢显示 fade
@@ -99,7 +95,7 @@ export default class superAccountIndex extends Component {
                         // 进行网络请求
                         httpPostJson(base_url+'relative',
                           {account: this.state.newSubAccount_account,subRelatedName: this.state.newSubAccount_relativeName},
-                          {type: this.state.type,account: this.state.account,token: this.state.token},
+                          this.state.header,
                           (res)=>{
                             console.log(res)
                             if(res.errorcode==0){
@@ -117,7 +113,7 @@ export default class superAccountIndex extends Component {
               </View>
             </View>
           </Modal>
-          <Modal //子账号详情模态窗口
+          <Modal //子账号绑定关系详情模态窗口
             visible={this.state.isSubAccountDetailShow}
             //从下面向上滑动 slide
             //慢慢显示 fade
@@ -148,6 +144,7 @@ export default class superAccountIndex extends Component {
                 subAccountDetail: subAccountDetail
               });
             }}
+            header={this.state.header}
             ref={firstTabRef=>this.firstTabRef=firstTabRef}
           />
         </View>

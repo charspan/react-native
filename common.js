@@ -54,6 +54,23 @@ export function httpPostJson(url, data, header,callback) {
     }).done();
 }
 
+export function httpDelete(url, header,callback) {
+    fetch(url, {
+        method: 'DELETE',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'type' : header.type,
+            'account' : header.account,
+            'token' : header.token
+        }
+    })
+    .then((response) => response.json())
+    .then((response) => {
+        callback(response);
+    }).done();
+}
+
 export function httpGet(url,params,header,callback){
     if (params) {
         let paramsArray = [];

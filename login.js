@@ -129,9 +129,7 @@ export default class login extends Component {
                                                                 params:{
                                                                     message: res2.data,
                                                                     navigator: login.navigator,
-                                                                    type: login.type,
-                                                                    account: login.account,
-                                                                    token: res1.data.token
+                                                                    header: {type: login.type,account: login.account,token: res1.data.token}
                                                                 }
                                                             });
                                                         }
