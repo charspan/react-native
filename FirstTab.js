@@ -33,12 +33,23 @@ export default class FirstTab extends Component{
       }
     }
 
+    // 父组件 ref 调用
     addValue(data){
       console.log('新增',data);
       this.state.data.push(data);
       this.setState({
         data: this.state.data
       });
+    }
+
+    // 父组件 ref 调用
+    hasSameValue(account){
+      for(var i=0;i<this.state.data.length;i++){
+        if(this.state.data[i].account==account){
+          return true;
+        }
+      }
+      return false;
     }
 
     // 方法二

@@ -7,12 +7,17 @@ import {
   TouchableOpacity,
   Image,
   Modal,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
+  Alert
 } from 'react-native';
 
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import TabBar from './my_component/TabBar';
+import TextInputBar from './my_component/TextInputBar';
+import ButtonItem from './my_component/ButtonItem';
 import FirstTab from './FirstTab';
+import {base_url,httpPostJson} from './common';
+import moment from 'moment';
 
 export default class superAccountIndex extends Component {
 
@@ -21,10 +26,18 @@ export default class superAccountIndex extends Component {
     super(props);
     this.state = {
       message: props.message,
-      modalVisible: false,
+      type: props.type,
+      account: props.account,
+      token: props.token,
+      isSubAccountDetailShow: false,
       subAccountDetail: {},
-      refAddValue: {}
+      isSubAccountAddShow: false,
+      newSubAccount_account: '',
+      newSubAccount_relativeName: ''
     };
+    console.log(props.type);
+    console.log(props.account);
+    console.log(props.token);
     superAccountIndex.navigator=props.navigator;
    // console.log(this.state.message);
   }
@@ -40,9 +53,11 @@ export default class superAccountIndex extends Component {
         <View tabLabel="ios-people" style={styles.firstTab}>
           <View style={styles.card}>
             <Text style={{fontSize:30}}>子账号管理</Text>
-            <TouchableOpacity
+            <TouchableOpacity // 点击显示新增子账号模态窗口
               onPress={()=>{
-                this.refAddValue.addValue({id: 15, account: "13656696339", subRelatedName: "宋大神", createTime: "2017-06-28 17:49:37.0", subAccountId: 13});
+                this.setState({
+                  isSubAccountAddShow: true
+                });
               }}
             >
               <Image style={{
@@ -52,19 +67,69 @@ export default class superAccountIndex extends Component {
               }} source={require('./img/plus.png')} />
             </TouchableOpacity>
           </View>
-          <Modal
-              visible={this.state.modalVisible}
-              //从下面向上滑动 slide
-              //慢慢显示 fade
-              animationType = {'slide'}
-              //是否透明默认是不透明 false
-              transparent = {true}
-              //关闭时调用
-              onRequestClose={()=> console.log("onRequestClose")}
+          <Modal // 新增子账号模态窗口
+            visible={this.state.isSubAccountAddShow}
+            //从下面向上滑动 slide
+            //慢慢显示 fade
+            animationType = {'slide'}
+            //是否透明默认是不透明 false
+            transparent = {true}
+            //关闭时调用
+            onRequestClose={()=> console.log("onRequestClose")}
           >
-            <TouchableWithoutFeedback onPress={()=> this.setState({modalVisible: false})}>
-              <View style={{flexDirection:'row', flex:1,backgroundColor:'rgba(0,200,200,0.8)'}}>
-                <View style={{flex:1,alignSelf:'center',justifyContent: 'center', padding:40,paddingLeft:50, backgroundColor:'rgba(0,200,200,0.8)'}}>
+            <View style={{flex:1,justifyContent: 'center',backgroundColor:'rgba(0,0,0,0.8)'}}>
+              <View style={{padding:15,height:250, backgroundColor:'rgba(255,255,255,1)'}}>
+                <TextInputBar name="账号" txtHide="请输入手机号" ref={node=>this.newSubAccount_account=node}/>
+                <TextInputBar name="昵称" txtHide="请输入对方昵称呼" ref={node=>this.newSubAccount_relativeName=node}/>
+                <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
+                  <ButtonItem label="取 消" func={()=> this.setState({isSubAccountAddShow: false})}/>
+                  <ButtonItem label="提 交" 
+                    func={()=>{
+                      // 获取输入信息
+                      this.state.newSubAccount_account=this.newSubAccount_account.getValue();
+                      this.state.newSubAccount_relativeName=this.newSubAccount_relativeName.getValue();
+                      // console.log(this.state.newSubAccount_account);
+                      // console.log(this.state.newSubAccount_relativeName);
+                      // 验证子账号格式是否正确
+                      // ...
+                      // 验证子账号是否存在
+                      if(this.firstTabRef.hasSameValue(this.state.newSubAccount_account)){
+                        Alert.alert('错误提示','该子账号已经存在!',[{text: '确定'}]);
+                      } else {
+                        // 进行网络请求
+                        httpPostJson(base_url+'relative',
+                          {account: this.state.newSubAccount_account,subRelatedName: this.state.newSubAccount_relativeName},
+                          {type: this.state.type,account: this.state.account,token: this.state.token},
+                          (res)=>{
+                            console.log(res)
+                            if(res.errorcode==0){
+                              this.firstTabRef.addValue({id: res.data.id, account: this.state.newSubAccount_account, subRelatedName: this.state.newSubAccount_relativeName, createTime: moment().format('YYYY-MM-DD HH:mm:ss'), subAccountId:res.data.subAccountId});
+                              this.setState({isSubAccountAddShow: false});
+                            }else{
+                              Alert.alert('错误提示','新增子账号失败,请重试!',[{text: '确定'}]);
+                            }
+                          }
+                        )
+                      }
+                    }}
+                  />
+                </View>
+              </View>
+            </View>
+          </Modal>
+          <Modal //子账号详情模态窗口
+            visible={this.state.isSubAccountDetailShow}
+            //从下面向上滑动 slide
+            //慢慢显示 fade
+            animationType = {'slide'}
+            //是否透明默认是不透明 false
+            transparent = {true}
+            //关闭时调用
+            onRequestClose={()=> console.log("onRequestClose")}
+          >
+            <TouchableWithoutFeedback onPress={()=> this.setState({isSubAccountDetailShow: false})}>
+              <View style={{flexDirection:'row', flex:1,backgroundColor:'rgba(0,0,0,0.8)'}}>
+                <View style={{flex:1,alignSelf:'center',justifyContent: 'center', padding:40,paddingLeft:50, backgroundColor:'rgba(255,255,255,1)'}}>
                   <Text style={{alignSelf:'center',fontSize:20,fontWeight:'bold'}}>子账号详细信息{"\n"}</Text>
                   <Text style={{alignSelf:'flex-start',fontSize:18}}>关系编号:  {this.state.subAccountDetail.id+"\n"}</Text>
                   <Text style={{alignSelf:'flex-start',fontSize:18}}>昵称:  {this.state.subAccountDetail.subRelatedName+"\n"}</Text>
@@ -75,14 +140,15 @@ export default class superAccountIndex extends Component {
               </View>
             </TouchableWithoutFeedback>
           </Modal>
-          <FirstTab subAccounts={this.state.message.bindings} 
-                    callback={(subAccountDetail)=>{
-                      this.setState({
-                        modalVisible: true,
-                        subAccountDetail: subAccountDetail
-                      });
-                    }}
-                    ref={refAddValue=>this.refAddValue=refAddValue}
+          <FirstTab 
+            subAccounts={this.state.message.bindings} 
+            callback={(subAccountDetail)=>{
+              this.setState({
+                isSubAccountDetailShow: true,
+                subAccountDetail: subAccountDetail
+              });
+            }}
+            ref={firstTabRef=>this.firstTabRef=firstTabRef}
           />
         </View>
         <ScrollView tabLabel="ios-paper" style={styles.tabView}>

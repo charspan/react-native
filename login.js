@@ -22,7 +22,6 @@ export default class login extends Component {
         super(props);
         this.state=({
             password: '123456',
-            token: '',
             accountType: true
         });
         login.navigator=this.props.navigator;
@@ -129,7 +128,10 @@ export default class login extends Component {
                                                                 component: superAccountIndex,
                                                                 params:{
                                                                     message: res2.data,
-                                                                    navigator: login.navigator
+                                                                    navigator: login.navigator,
+                                                                    type: login.type,
+                                                                    account: login.account,
+                                                                    token: res1.data.token
                                                                 }
                                                             });
                                                         }
