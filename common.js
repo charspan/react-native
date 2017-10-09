@@ -17,7 +17,7 @@ function reverseString(str){
 }
 
 // md5加密
-function md5(str){
+export function md5(str){
     var md = forge.md.md5.create();
     md.update(str);
     var pwdMD5 = md.digest().toHex();

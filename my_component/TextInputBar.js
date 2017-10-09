@@ -71,8 +71,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row'
     },
     txtName: {
-        width: 40,
-        marginLeft: 20,
+        width: 80,
+        marginLeft: 30,
         fontSize: 18,
         alignSelf: 'center',alignItems:'center',  
         justifyContent: 'center',  

@@ -18,6 +18,9 @@ import ButtonItem from './my_component/ButtonItem';
 import FirstTab from './FirstTab';
 import {base_url,httpPostJson,httpPut} from './common';
 import moment from 'moment';
+import SecondTab from './SecondTab';
+import ThirdTab from './ThirdTab';
+import FourthTab from './FourthTab';
 
 export default class superAccountIndex extends Component {
 
@@ -34,7 +37,10 @@ export default class superAccountIndex extends Component {
       newSubAccount_relativeName: '', // 新增子账号相对昵称
       isSubAccountEditShow: false, // 是否显示编辑子账号界面
       rowIDEdit: -1, // 当前编辑的子账号行号
-      rowDataEdit: {} // 当前编辑子账号的详细信息
+      rowDataEdit: {}, // 当前编辑子账号的详细信息
+      isPersonalEditShow: false, //是否显示修改个人信息
+      personalEdit_nickname: '', // 编辑个人昵称
+      personalEdit_mobile: '' //编辑个人手机号
     };
     superAccountIndex.navigator=props.navigator;
   }
@@ -102,6 +108,8 @@ export default class superAccountIndex extends Component {
                             if(res.errorcode==0){
                               this.firstTabRef.addValue({id: res.data.id, account: this.state.newSubAccount_account, subRelatedName: this.state.newSubAccount_relativeName, createTime: moment().format('YYYY-MM-DD HH:mm:ss'), subAccountId:res.data.subAccountId});
                               this.setState({isSubAccountAddShow: false});
+                              // 跳转出权限配置界面...
+                              // code in block
                             }else{
                               Alert.alert('错误提示','新增子账号失败,请重试!',[{text: '确定'}]);
                             }
@@ -189,7 +197,7 @@ export default class superAccountIndex extends Component {
                 rowIDEdit: rowIDEdit,
                 rowDataEdit: rowDataEdit
               });
-              console.log(rowDataEdit);
+              //console.log(rowDataEdit);
             }}
             // 传递 http 请求头
             header={this.state.header}
@@ -197,20 +205,139 @@ export default class superAccountIndex extends Component {
             ref={firstTabRef=>this.firstTabRef=firstTabRef}
           />
         </View>
-        <ScrollView tabLabel="ios-paper" style={styles.tabView}>
+        <ScrollView tabLabel="ios-paper" style={styles.tabView}
+          ref={component => this.scrollView1 = component}
+        >
           <View style={styles.card}>
-            <Text>Friends</Text>
+            <Text style={{fontSize:30}}>网关管理</Text>
+            <TouchableOpacity // 点击显示新增子账号绑定关系模态窗口
+              onPress={()=>{
+                //console.log('网关信息',this.state.message.superAccount.gateway);
+                Alert.alert('提示','当前网关已是最新版本,无需升级!',[{text: '确定'}]);
+              }}
+            >
+              <Image 
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 10
+                }}
+                source={require('./img/upGrade.png')}
+              />
+            </TouchableOpacity>
           </View>
+          <SecondTab gateway={this.state.message.superAccount.gateway} 
+            scroll={(dir)=>{
+              if(dir){
+                // 自动会回去的
+                // this.scrollView1.scrollTo(50,0,true);
+              }else{
+                this.scrollView1.scrollTo({x:0,y:150,animated:true});
+              }
+            }}
+          />
         </ScrollView>
-        <ScrollView tabLabel="ios-body" style={styles.tabView}>
+        <ScrollView tabLabel="ios-body" style={styles.tabView}
+          ref={component => this.scrollView2 = component}
+        >
           <View style={styles.card}>
-            <Text>Messenger</Text>
+            <Text style={{fontSize:30}}>个人信息</Text>
+            <TouchableOpacity // 点击显示修改个人信息模态窗口
+              onPress={()=>{
+                console.log('个人信息',this.state.message.superAccount);
+                this.setState({isPersonalEditShow: true});
+                //Alert.alert('提示','当前网关已是最新版本,无需升级!',[{text: '确定'}]);
+              }}
+            >
+              <Image 
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 10
+                }}
+                source={require('./img/edit.jpg')}
+              />
+            </TouchableOpacity>
           </View>
+          <Modal // 修改个人信息模态窗口
+            visible={this.state.isPersonalEditShow}
+            //从下面向上滑动 slide
+            //慢慢显示 fade
+            animationType = {'slide'}
+            //是否透明默认是不透明 false
+            transparent = {true}
+            //关闭时调用
+            onRequestClose={()=>{}}
+          >
+            <View style={{flex:1,justifyContent: 'center',backgroundColor:'rgba(0,0,0,0.8)'}}>
+              <View style={{padding:15,height:250, backgroundColor:'rgba(255,255,255,1)'}}>
+                <TextInputBar name="昵称" txtHide="请输入新昵称" ref={node=>this.personalEdit_nickname=node}/>
+                <TextInputBar name="手机" txtHide="请输入新手机号" ref={node=>this.personalEdit_mobile=node}/>
+                <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
+                  <ButtonItem label="取 消" func={()=> this.setState({isPersonalEditShow: false})}/>
+                  <ButtonItem label="提 交"
+                    func={()=>{
+                      // 获取输入信息
+                      this.state.personalEdit_nickname=this.personalEdit_nickname.getValue();
+                      this.state.personalEdit_mobile=this.personalEdit_mobile.getValue();
+                      // 进行网络请求
+                      httpPut(base_url+'client/info',
+                        {nickname: this.state.personalEdit_nickname,mobile: this.state.personalEdit_mobile},
+                        this.state.header,
+                        (res)=>{
+                          if(res.errorcode==0){
+                            this.thirdTabRef.update(this.state.personalEdit_nickname,this.state.personalEdit_mobile);
+                            this.setState({isPersonalEditShow: false});
+                          }else if(res.errorcode==-1){
+                            Alert.alert('错误提示','您输入的手机格式有误!',[{text: '确定'}]);
+                          }else{
+                            Alert.alert('错误提示','修改账号信息失败,请重试!',[{text: '确定'}]);
+                          }
+                        }
+                      );
+                    }}
+                  />
+                </View>
+              </View>
+            </View>
+          </Modal>
+          <ThirdTab
+            superAccount={this.state.message.superAccount}
+            scroll={(dir)=>{
+              if(dir){
+                // 自动会回去的
+                // this.scrollView2.scrollTo(50,0,true);
+              }else{
+                this.scrollView2.scrollTo({x:0,y:150,animated:true});
+              }
+            }}
+            ref={thirdTabRef=>this.thirdTabRef=thirdTabRef}
+          />
         </ScrollView>
         <ScrollView tabLabel="ios-apps" style={styles.tabView}>
           <View style={styles.card}>
-            <Text>Notifications</Text>
+            <Text style={{fontSize:30}}>系统设置</Text>
+            <TouchableOpacity // 点击显示修改个人信息模态窗口
+              onPress={()=>{
+                //console.log('个人信息',this.state.message.superAccount);
+                Alert.alert('提示','密码修改,退出登录等!',[{text: '确定'}]);
+              }}
+            >
+              <Image 
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 10
+                }}
+                source={require('./img/3.png')}
+              />
+            </TouchableOpacity>
           </View>
+          <FourthTab
+            header={this.state.header}
+            password={this.state.message.superAccount.password}
+            navigator={superAccountIndex.navigator}
+          />
         </ScrollView>
       </ScrollableTabView>
     );
