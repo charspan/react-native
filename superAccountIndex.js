@@ -16,7 +16,7 @@ import TabBar from './my_component/TabBar';
 import TextInputBar from './my_component/TextInputBar';
 import ButtonItem from './my_component/ButtonItem';
 import FirstTab from './FirstTab';
-import {base_url,httpPostJson} from './common';
+import {base_url,httpPostJson,httpPut} from './common';
 import moment from 'moment';
 
 export default class superAccountIndex extends Component {
@@ -31,9 +31,12 @@ export default class superAccountIndex extends Component {
       subAccountDetail: {},
       isSubAccountAddShow: false,
       newSubAccount_account: '',
-      newSubAccount_relativeName: ''
+      newSubAccount_relativeName: '',
+      isSubAccountEditShow: false,
+      rowIDEdit: -1,
+      rowData: {}
     };
-    console.log(props.header);
+    //console.log(props.header);
     superAccountIndex.navigator=props.navigator;
    // console.log(this.state.message);
   }
@@ -113,6 +116,37 @@ export default class superAccountIndex extends Component {
               </View>
             </View>
           </Modal>
+          <Modal // 修改子账号绑定关系模态窗口
+            visible={this.state.isSubAccountEditShow}
+            //从下面向上滑动 slide
+            //慢慢显示 fade
+            animationType = {'slide'}
+            //是否透明默认是不透明 false
+            transparent = {true}
+            //关闭时调用
+            onRequestClose={()=> console.log("onRequestClose")}
+          >
+            <View style={{flex:1,justifyContent: 'center',backgroundColor:'rgba(0,0,0,0.8)'}}>
+              <View style={{padding:15,height:150, backgroundColor:'rgba(255,255,255,1)'}}>
+                <TextInputBar name="昵称" txtHide="请输入对方昵称呼" ref={node=>this.editSubAccount_relativeName=node}/>
+                <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
+                  <ButtonItem label="取 消" func={()=> this.setState({isSubAccountEditShow: false})}/>
+                  <ButtonItem label="提 交" 
+                    func={()=>{
+                      httpPut(base_url+'relative/'+this.state.rowDataEdit.id,{'subRelatedName': this.editSubAccount_relativeName.getValue()},this.state.header,(res)=>{
+                        if(res.errorcode==0){
+                          this.firstTabRef.editValue(this.state.rowIDEdit,this.state.rowDataEdit,this.editSubAccount_relativeName.getValue());
+                          this.setState({isSubAccountEditShow: false})
+                        }else{
+                          Alert.alert('错误提示','修改子账号失败,请重试!',[{text: '确定'}]);
+                        }
+                      });
+                    }}
+                  />
+                </View>
+              </View>
+            </View>
+          </Modal>
           <Modal //子账号绑定关系详情模态窗口
             visible={this.state.isSubAccountDetailShow}
             //从下面向上滑动 slide
@@ -143,6 +177,14 @@ export default class superAccountIndex extends Component {
                 isSubAccountDetailShow: true,
                 subAccountDetail: subAccountDetail
               });
+            }}
+            callbackEdit={(rowIDEdit,rowDataEdit)=>{
+              this.setState({
+                isSubAccountEditShow: true,
+                rowIDEdit: rowIDEdit,
+                rowDataEdit: rowDataEdit
+              });
+              console.log(rowIDEdit,rowDataEdit);
             }}
             header={this.state.header}
             ref={firstTabRef=>this.firstTabRef=firstTabRef}

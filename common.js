@@ -71,6 +71,24 @@ export function httpDelete(url, header,callback) {
     }).done();
 }
 
+export function httpPut(url, data,header,callback) {
+    fetch(url, {
+        method: 'PUT',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'type' : header.type,
+            'account' : header.account,
+            'token' : header.token
+        },
+        body: JSON.stringify(data)
+    })
+    .then((response) => response.json())
+    .then((response) => {
+        callback(response);
+    }).done();
+}
+
 export function httpGet(url,params,header,callback){
     if (params) {
         let paramsArray = [];

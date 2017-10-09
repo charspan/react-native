@@ -13,12 +13,13 @@ import {base_url,httpDelete} from './common';
 import TextInputBar from './my_component/TextInputBar';
 import ButtonItem from './my_component/ButtonItem';
 
+// 遗留问题: 为什么TextInputBar获取不到用户的输入? 已用'//////////////////////////'注释 现已用其他方法解决获取用户输入的问题
 export default class FirstTab extends Component{
 
     constructor(props){     
       super(props);
       // 方法1
-      //this._renderRow=this._renderRow.bind(this);
+      //this.renderRow=this.renderRow.bind(this);
       //console.log(props.subAccounts);
       var ds= new ListView.DataSource({
         rowHasChanged:(r1,r2)=>r1!==r2
@@ -27,7 +28,7 @@ export default class FirstTab extends Component{
         header: props.header,
         dataSource : ds,
         data: props.subAccounts?props.subAccounts:[],
-        isSubAccountEditShow: false
+        /////////////////// isSubAccountEditShow: false,
       }
     }
 
@@ -59,39 +60,54 @@ export default class FirstTab extends Component{
       return false;
     }
 
+    // 父组件 ref 调用: 修改某行数据
+    editValue(rowID , rowData , newSubRectiveName){
+      rowData.subRelatedName=newSubRectiveName;
+      this.state.data.splice(rowID,1,rowData);
+      this.setState({
+        data: this.state.data
+      });
+    }
+
     // 方法二 ()=>{}
     renderRow=(rowData,sectionID, rowID)=> {
         return (
-            <View style={styles.row}>
-              <Modal // 修改子账号绑定关系模态窗口
-                visible={this.state.isSubAccountEditShow}
-                //从下面向上滑动 slide
-                //慢慢显示 fade
-                animationType = {'slide'}
-                //是否透明默认是不透明 false
-                transparent = {true}
-                //关闭时调用
-                onRequestClose={()=> console.log("onRequestClose")}
-              >
-                <View style={{flex:1,justifyContent: 'center',backgroundColor:'rgba(0,0,0,0.8)'}}>
-                  <View style={{padding:15,height:150, backgroundColor:'rgba(255,255,255,1)'}}>
-                    <TextInputBar name="昵称" txtHide="请输入对方昵称呼" ref={node1=>this.editSubAccount_relativeName=node1}/>
-                    <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
-                      <ButtonItem label="取 消" func={()=> this.setState({isSubAccountEditShow: false})}/>
-                      <ButtonItem label="提 交" 
-                        func={()=>{
-                          console.log(this.editSubAccount_relativeName.getValue());
-                          rowData.subRelatedName=this.editSubAccount_relativeName.getValue();
-                          this.state.data.splice(rowID,1,rowData);
-                          this.setState({
-                            data: this.state.data
-                          });
-                        }}
-                      />
-                    </View>
-                  </View>
-                </View>
-              </Modal>
+            <View style={styles.row}
+          ///////////////////////实际在 View 标签内部,为了注释放在此处/////////////////
+          //   <Modal // 修改子账号绑定关系模态窗口
+          //   visible={this.state.isSubAccountEditShow}
+          //   //从下面向上滑动 slide
+          //   //慢慢显示 fade
+          //   animationType = {'slide'}
+          //   //是否透明默认是不透明 false
+          //   transparent = {true}
+          //   //关闭时调用
+          //   onRequestClose={()=> console.log("onRequestClose")}
+          // >
+          //   <View style={{flex:1,justifyContent: 'center',backgroundColor:'rgba(0,0,0,0.8)'}}>
+          //     <View style={{padding:15,height:150, backgroundColor:'rgba(255,255,255,1)'}}>
+          //       <TextInputBar name="昵称" txtHide="请输入对方昵称呼" ref={node=>this.editSubAccount_relativeName=node}/>
+          //       <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
+          //         <ButtonItem label="取 消" func={()=> this.setState({isSubAccountEditShow: false})}/>
+          //         <ButtonItem label="提 交" 
+          //           func={()=>{
+          //             ///////////////////////////////////很奇怪得不到输入的值////////////////////////////////
+          //             console.log(this)
+          //             console.log(this.editSubAccount_relativeName.getValue());
+          //             // rowData.subRelatedName=this.editSubAccount_relativeName.getValue();
+          //             // this.state.data.splice(rowID,1,rowData);
+          //             // this.setState({
+          //             //   data: this.state.data,
+          //             //   isSubAccountEditShow: false
+          //             // });
+          //           }}
+          //         />
+          //       </View>
+          //     </View>
+          //   </View>
+          // </Modal>
+          /////////////////////////////////////////////////////////////////////////////////////
+            >
               <Text // 点击查看子账号详情
                 style={{flex:1,fontSize:16,color:'blue',}}
                 onPress={()=>{
@@ -102,13 +118,16 @@ export default class FirstTab extends Component{
               </Text>
               <TouchableOpacity //点击修改子账号权限信息
                 onPress={()=>{
+                  console.log('修改权限');
                 }}
               >
                 <Image style={styles.thumb} source={require('./img/power.png')}  />
               </TouchableOpacity>
               <TouchableOpacity // 点击修改子账号绑定关系相对昵称
                 onPress={()=>{
-                  this.setState({isSubAccountEditShow: true});
+                  console.log('修改子账号绑定关系相对昵称');
+                  this.props.callbackEdit(rowID,rowData);
+                  /////////////////this.setState({isSubAccountEditShow: true});
                 }}
               >
                 <Image style={styles.thumb} source={require('./img/edit.jpg')} />
