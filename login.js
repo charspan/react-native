@@ -97,30 +97,27 @@ export default class login extends Component {
                         login.type=this.state.accountType?1:0;
                         // 获取系统时间戳
                         httpGet(base_url+'timestamp/'+login.type+'/'+login.account,{randomCode : getRandomNum()},{},(res0)=>{
-                            //console.log('获取系统时间戳',res0);
                             if(res0.errorcode==0){
-                                console.log("randomStr",res0.data.randomStr);
-                                console.log("timestamp",res0.data.timestamp);
                                 // 获取 token
                                 httpPostJson(
                                     base_url+'tokens/'+ login.type+'/'+login.account,
                                     {randomStr:res0.data.randomStr,timestamp:res0.data.timestamp,password:jiami(this.state.password)},
                                     {},
                                     (res1)=>{
-                                        //console.log('获取 token',res1);
                                         if(res1.errorcode==0){
-                                            console.log('token',res1.data.token);
-                                            console.log('expiresTime',res1.data.expiresTime);
                                             // 获取个人信息
                                             httpGet(
                                                 base_url+'client/info',
                                                 {},
                                                 {type:login.type,account:login.account,token:res1.data.token},
                                                 (res2)=>{
-                                                    console.log('selfInfo',res2);
                                                     if(res2.errorcode==0){
-                                                        if(login.accountType==0){// 子账号
-
+                                                        if(login.type==0){// 子账号
+                                                            Alert.alert(
+                                                                '子账号页面暂未开放!',
+                                                                '您获得的信息是:'+JSON.stringify(res2.data),
+                                                                [{text: '确定'}]
+                                                            );
                                                         }else{// 超级账号
                                                             // 采用替换当前场景
                                                             login.navigator.replace({
@@ -137,9 +134,7 @@ export default class login extends Component {
                                                         Alert.alert(
                                                             '提示',
                                                             '验证信息失败',
-                                                            [
-                                                                {text: '确定', onPress: () => console.log('OK Pressed')},
-                                                            ]
+                                                            [{text: '确定', onPress: () => console.log('验证信息失败')}]
                                                         );
                                                     }
                                                 }
@@ -148,9 +143,7 @@ export default class login extends Component {
                                             Alert.alert(
                                                 '提示',
                                                 '您的密码有误',
-                                                [
-                                                    {text: '确定', onPress: () => console.log('OK Pressed')},
-                                                ]
+                                                [{text: '确定', onPress: () => console.log('您的密码有误')}]
                                             );
                                         }
                                     }
@@ -159,9 +152,7 @@ export default class login extends Component {
                                 Alert.alert(
                                     '提示',
                                     '您的账号不存在',
-                                    [
-                                        {text: '确定', onPress: () => console.log('OK Pressed')},
-                                    ]
+                                    [{text: '确定', onPress: () => console.log('您的账号不存在')}]
                                 );
                             }
                         });

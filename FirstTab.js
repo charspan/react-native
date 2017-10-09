@@ -18,20 +18,22 @@ export default class FirstTab extends Component{
 
     constructor(props){     
       super(props);
-      // 方法1
+      // 绑定上下文 方法1
       //this.renderRow=this.renderRow.bind(this);
-      //console.log(props.subAccounts);
-      var ds= new ListView.DataSource({
-        rowHasChanged:(r1,r2)=>r1!==r2
-      });
       this.state={
+        // 接收 http 请求头
         header: props.header,
-        dataSource : ds,
+        // 设置listview
+        dataSource : new ListView.DataSource({
+          rowHasChanged:(r1,r2)=>r1!==r2
+        }),
+        // 获取子账号绑定关系列表
         data: props.subAccounts?props.subAccounts:[],
         /////////////////// isSubAccountEditShow: false,
       }
     }
 
+    // 从数组中移除某个元素
     removeByValue(arr, val) {
       for(var i=0; i<arr.length; i++) {
         if(arr[i] == val) {
@@ -43,7 +45,6 @@ export default class FirstTab extends Component{
 
     // 父组件 ref 调用: 新增子账号绑定关系
     addValue(data){
-      //console.log('新增',data);
       this.state.data.push(data);
       this.setState({
         data: this.state.data
@@ -69,7 +70,7 @@ export default class FirstTab extends Component{
       });
     }
 
-    // 方法二 ()=>{}
+    // 绑定上下文 方法二 ()=>{}
     renderRow=(rowData,sectionID, rowID)=> {
         return (
             <View style={styles.row}
@@ -111,7 +112,7 @@ export default class FirstTab extends Component{
               <Text // 点击查看子账号详情
                 style={{flex:1,fontSize:16,color:'blue',}}
                 onPress={()=>{
-                  this.props.callback(rowData);
+                  this.props.callbackShowSubAccountDetail(rowData);
                 }}
               >
                 {"昵称: "+rowData.subRelatedName + "\n账号: " +rowData.account}
@@ -125,8 +126,7 @@ export default class FirstTab extends Component{
               </TouchableOpacity>
               <TouchableOpacity // 点击修改子账号绑定关系相对昵称
                 onPress={()=>{
-                  console.log('修改子账号绑定关系相对昵称');
-                  this.props.callbackEdit(rowID,rowData);
+                  this.props.callbackShowSubAccountEdit(rowID,rowData);
                   /////////////////this.setState({isSubAccountEditShow: true});
                 }}
               >
@@ -138,7 +138,7 @@ export default class FirstTab extends Component{
                     '提示',
                     '确定要删除子账号"'+rowData.account+'"吗?',
                     [
-                      {text: '取消', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+                      {text: '取消', onPress: () => {}, style: 'cancel'},
                       {text: '确定', onPress: () => {
                         httpDelete(base_url+'relative/'+rowData.id,this.state.header,
                           (res)=>{

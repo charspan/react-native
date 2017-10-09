@@ -25,20 +25,18 @@ export default class superAccountIndex extends Component {
   constructor(props){
     super(props);
     this.state = {
-      message: props.message,
-      header: props.header,
-      isSubAccountDetailShow: false,
-      subAccountDetail: {},
-      isSubAccountAddShow: false,
-      newSubAccount_account: '',
-      newSubAccount_relativeName: '',
-      isSubAccountEditShow: false,
-      rowIDEdit: -1,
-      rowData: {}
+      message: props.message, // 超级账号登录后获取的 data 信息
+      header: props.header, // http 请求头部信息
+      isSubAccountDetailShow: false, // 是否显示当前子账号详细信息
+      subAccountDetail: {}, // 子账号详细信息
+      isSubAccountAddShow: false, // 是否显示新增子账号界面
+      newSubAccount_account: '', // 新增子账号的子账号
+      newSubAccount_relativeName: '', // 新增子账号相对昵称
+      isSubAccountEditShow: false, // 是否显示编辑子账号界面
+      rowIDEdit: -1, // 当前编辑的子账号行号
+      rowDataEdit: {} // 当前编辑子账号的详细信息
     };
-    //console.log(props.header);
     superAccountIndex.navigator=props.navigator;
-   // console.log(this.state.message);
   }
 
   render() {
@@ -59,11 +57,14 @@ export default class superAccountIndex extends Component {
                 });
               }}
             >
-              <Image style={{
-                width: 40,
-                height: 40,
-                borderRadius: 10
-              }} source={require('./img/plus.png')} />
+              <Image 
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 10
+                }}
+                source={require('./img/plus.png')}
+              />
             </TouchableOpacity>
           </View>
           <Modal // 新增子账号绑定关系模态窗口
@@ -74,7 +75,7 @@ export default class superAccountIndex extends Component {
             //是否透明默认是不透明 false
             transparent = {true}
             //关闭时调用
-            onRequestClose={()=> console.log("onRequestClose")}
+            onRequestClose={()=>{}}
           >
             <View style={{flex:1,justifyContent: 'center',backgroundColor:'rgba(0,0,0,0.8)'}}>
               <View style={{padding:15,height:250, backgroundColor:'rgba(255,255,255,1)'}}>
@@ -87,10 +88,8 @@ export default class superAccountIndex extends Component {
                       // 获取输入信息
                       this.state.newSubAccount_account=this.newSubAccount_account.getValue();
                       this.state.newSubAccount_relativeName=this.newSubAccount_relativeName.getValue();
-                      // console.log(this.state.newSubAccount_account);
-                      // console.log(this.state.newSubAccount_relativeName);
                       // 验证子账号格式是否正确
-                      // ...
+                      // ...暂时不做任何验证...
                       // 验证子账号是否存在
                       if(this.firstTabRef.hasSameValue(this.state.newSubAccount_account)){
                         Alert.alert('错误提示','该子账号已经存在!',[{text: '确定'}]);
@@ -100,7 +99,6 @@ export default class superAccountIndex extends Component {
                           {account: this.state.newSubAccount_account,subRelatedName: this.state.newSubAccount_relativeName},
                           this.state.header,
                           (res)=>{
-                            console.log(res)
                             if(res.errorcode==0){
                               this.firstTabRef.addValue({id: res.data.id, account: this.state.newSubAccount_account, subRelatedName: this.state.newSubAccount_relativeName, createTime: moment().format('YYYY-MM-DD HH:mm:ss'), subAccountId:res.data.subAccountId});
                               this.setState({isSubAccountAddShow: false});
@@ -108,7 +106,7 @@ export default class superAccountIndex extends Component {
                               Alert.alert('错误提示','新增子账号失败,请重试!',[{text: '确定'}]);
                             }
                           }
-                        )
+                        );
                       }
                     }}
                   />
@@ -124,23 +122,27 @@ export default class superAccountIndex extends Component {
             //是否透明默认是不透明 false
             transparent = {true}
             //关闭时调用
-            onRequestClose={()=> console.log("onRequestClose")}
+            onRequestClose={()=>{}}
           >
             <View style={{flex:1,justifyContent: 'center',backgroundColor:'rgba(0,0,0,0.8)'}}>
               <View style={{padding:15,height:150, backgroundColor:'rgba(255,255,255,1)'}}>
-                <TextInputBar name="昵称" txtHide="请输入对方昵称呼" ref={node=>this.editSubAccount_relativeName=node}/>
+                <TextInputBar name="昵称" txtHide={this.state.rowDataEdit.subRelatedName} ref={node=>this.editSubAccount_relativeName=node}/>
                 <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
                   <ButtonItem label="取 消" func={()=> this.setState({isSubAccountEditShow: false})}/>
                   <ButtonItem label="提 交" 
                     func={()=>{
-                      httpPut(base_url+'relative/'+this.state.rowDataEdit.id,{'subRelatedName': this.editSubAccount_relativeName.getValue()},this.state.header,(res)=>{
-                        if(res.errorcode==0){
-                          this.firstTabRef.editValue(this.state.rowIDEdit,this.state.rowDataEdit,this.editSubAccount_relativeName.getValue());
-                          this.setState({isSubAccountEditShow: false})
-                        }else{
-                          Alert.alert('错误提示','修改子账号失败,请重试!',[{text: '确定'}]);
+                      httpPut(base_url+'relative/'+this.state.rowDataEdit.id,
+                        {subRelatedName: this.editSubAccount_relativeName.getValue()},
+                        this.state.header,
+                        (res)=>{
+                          if(res.errorcode==0){
+                            this.firstTabRef.editValue(this.state.rowIDEdit,this.state.rowDataEdit,this.editSubAccount_relativeName.getValue());
+                            this.setState({isSubAccountEditShow: false})
+                          }else{
+                            Alert.alert('错误提示','修改子账号失败,请重试!',[{text: '确定'}]);
+                          }
                         }
-                      });
+                      );
                     }}
                   />
                 </View>
@@ -155,7 +157,7 @@ export default class superAccountIndex extends Component {
             //是否透明默认是不透明 false
             transparent = {true}
             //关闭时调用
-            onRequestClose={()=> console.log("onRequestClose")}
+            onRequestClose={()=>{}}
           >
             <TouchableWithoutFeedback onPress={()=> this.setState({isSubAccountDetailShow: false})}>
               <View style={{flexDirection:'row', flex:1,backgroundColor:'rgba(0,0,0,0.8)'}}>
@@ -170,23 +172,28 @@ export default class superAccountIndex extends Component {
               </View>
             </TouchableWithoutFeedback>
           </Modal>
-          <FirstTab 
-            subAccounts={this.state.message.bindings} 
-            callback={(subAccountDetail)=>{
+          <FirstTab
+            // 传递绑定关系列表
+            subAccounts={this.state.message.bindings}
+            // 传递显示子账号详细信息回调方法
+            callbackShowSubAccountDetail={(subAccountDetail)=>{
               this.setState({
                 isSubAccountDetailShow: true,
                 subAccountDetail: subAccountDetail
               });
             }}
-            callbackEdit={(rowIDEdit,rowDataEdit)=>{
+            // 传递显示编辑子账号界面回调方法
+            callbackShowSubAccountEdit={(rowIDEdit,rowDataEdit)=>{
               this.setState({
                 isSubAccountEditShow: true,
                 rowIDEdit: rowIDEdit,
                 rowDataEdit: rowDataEdit
               });
-              console.log(rowIDEdit,rowDataEdit);
+              console.log(rowDataEdit);
             }}
+            // 传递 http 请求头
             header={this.state.header}
+            // 设置 ref, 方便调用当前子组件(FirstTab)内部方法
             ref={firstTabRef=>this.firstTabRef=firstTabRef}
           />
         </View>
