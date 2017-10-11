@@ -47,13 +47,38 @@ export default class FirstTabRight extends Component{
         // 你可以在构造函数这里就写好sync的方法
         // 或是在任何时候，直接对storage.sync进行赋值修改
         // 或是写到另一个文件里，这里require引入
-       // sync: require('你可以另外写一个文件专门处理sync')  
+        //sync: require('你可以另外写一个文件专门处理sync')
+        sync: {
+          storageProjects(params){
+            httpPostJson(
+              base_url+"UIDesigner/"+params.syncParams.superAccountId+"/projects",
+              {},
+              params.syncParams.header,
+              (res)=>{
+                //console.log("网络请求工程列表",res);
+                if(res.errorcode==0){
+                  params.syncParams.storage.save({
+                    key: 'storageProjects',  // 注意:请不要在key中使用_下划线符号!
+                    data: res.data.projectList,
+                    // 如果不指定过期时间，则会使用defaultExpires参数
+                    // 如果设为null，则永不过期
+                    expires: 1000 * 3600
+                  });
+                   // 成功则调用resolve
+                   params.resolve && params.resolve(res.data.projectList);
+                }else{
+                  // 失败则调用reject
+                  params.reject && params.reject(new Error('data parse error'));
+                }
+              }
+            );
+          }
+        }
       })
     }
-
     // 先从缓存中读取工程列表,如果没有则进行网络请求
     this.state.storage.load({
-      key: 'loginState',
+      key: 'storageProjects',
       // autoSync(默认为true)意味着在没有找到数据或数据过期时自动调用相应的sync方法
       autoSync: true,
       // syncInBackground(默认为true)意味着如果数据过期，
@@ -61,11 +86,10 @@ export default class FirstTabRight extends Component{
       // 设置为false的话，则等待sync方法提供的最新数据(当然会需要更多时间)。
       syncInBackground: true,
       // 你还可以给sync方法传递额外的参数
-      syncParams: {
-        extraFetchOptions: {
-          // 各种参数
-        },
-        someFlag: true,
+      syncParams: {// 当找不到缓存数据的时候自动调用方法的参数
+        superAccountId: this.state.superAccountId,
+        header: this.state.header,
+        storage: this.state.storage
       },
     }).then(ret => {
       // 如果找到数据，则在then方法中返回
@@ -76,50 +100,20 @@ export default class FirstTabRight extends Component{
       // 你也可以使用“看似”同步的async/await语法
       // console.log("缓存中的工程列表: "+JSON.stringify(ret.projects));
       this.setState({
-        projects: ret.projects
+        projects: ret
       });
-      console.log("缓存工程个数:"+this.state.projects.length);
+      //console.log("缓存工程个数:"+this.state.projects.length);
     }).catch(err => {
-
-console.log(err);
-      if(this.state.projects.length==0){
-        httpPostJson(
-          base_url+"UIDesigner/"+this.state.superAccountId+"/projects",
-          {},
-          this.state.header,
-          (res)=>{
-            console.log("网络请求工程列表");
-            if(res.errorcode==0){
-              this.setState({
-                projects: res.data.projectList
-              });
-              //console.log(JSON.stringify(res));
-              // 使用key来保存数据。这些数据一般是全局独有的，常常需要调用的。
-              // 除非你手动移除，这些数据会被永久保存，而且默认不会过期。
-              this.state.storage.save({
-                key: 'loginState',  // 注意:请不要在key中使用_下划线符号!
-                data: {
-                  projects: res.data.projectList
-                },
-                // 如果不指定过期时间，则会使用defaultExpires参数
-                // 如果设为null，则永不过期
-                expires: 1000 * 3600
-              });
-            }
-          }
-        );
-      }
-
       //如果没有找到数据且没有sync方法，
       //或者有其他异常，则在catch中返回
       // console.warn(err.message);
       switch (err.name) {
         case 'NotFoundError':
-            // TODO;
-            break;
-          case 'ExpiredError':
-              // TODO
-            break;
+          // TODO;
+        break;
+        case 'ExpiredError':
+          // TODO
+        break;
       }
     });
   }
