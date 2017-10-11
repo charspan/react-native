@@ -45,7 +45,3 @@ export default class SecondTab extends Component{
         );
     }
 }
-
-const styles = StyleSheet.create({
-    
-});

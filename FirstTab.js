@@ -73,6 +73,7 @@ export default class FirstTab extends Component{
     // 绑定上下文 方法二 ()=>{}
     renderRow=(rowData,sectionID, rowID)=> {
         return (
+          <View>
             <View style={styles.row}
           ///////////////////////实际在 View 标签内部,为了注释放在此处/////////////////
           //   <Modal // 修改子账号绑定关系模态窗口
@@ -109,20 +110,22 @@ export default class FirstTab extends Component{
           // </Modal>
           /////////////////////////////////////////////////////////////////////////////////////
             >
-              <Text // 点击查看子账号详情
-                style={{flex:1,fontSize:16,color:'blue',}}
+              <TouchableOpacity // 点击查看子账号详情
+                style={{flex:1}}
                 onPress={()=>{
                   this.props.callbackShowSubAccountDetail(rowData);
                 }}
               >
-                {"昵称: "+rowData.subRelatedName + "\n账号: " +rowData.account}
-              </Text>
+                <Text style={{fontSize:16,color:'blue'}}>
+                  {"昵称: "+rowData.subRelatedName + "\n账号: " +rowData.account}
+                </Text>
+              </TouchableOpacity>
               <TouchableOpacity //点击修改子账号权限信息
                 onPress={()=>{
-                  console.log('修改权限');
+                  this.props.callbackShowSubAccountRightEdit();
                 }}
               >
-                <Image style={styles.thumb} source={require('./img/power.png')}  />
+                <Image style={styles.thumb} source={require('./img/power.png')} />
               </TouchableOpacity>
               <TouchableOpacity // 点击修改子账号绑定关系相对昵称
                 onPress={()=>{
@@ -157,10 +160,12 @@ export default class FirstTab extends Component{
                   );
                 }}
               >
-                <Image style={styles.thumb} source={require('./img/trash.jpg')}  />
+                <Image style={styles.thumb} source={require('./img/trash.jpg')} />
               </TouchableOpacity>
             </View>
-          );
+            <View style={{height:2,backgroundColor:'white'}} />
+          </View>
+        );
     }
    
     render() {

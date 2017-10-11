@@ -54,7 +54,3 @@ export default class ThirdTab extends Component{
         );
     }
 }
-
-const styles = StyleSheet.create({
-    
-});

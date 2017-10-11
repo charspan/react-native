@@ -9,7 +9,6 @@ import {
 
 import CustomerComponents, {Navigator} from 'react-native-deprecated-custom-components';
 
-
 import Login from './login';
 
 export default class preLogin extends Component {
@@ -46,6 +45,3 @@ export default class preLogin extends Component {
     );
   }
 }
-
-const styles = StyleSheet.create({
-});
