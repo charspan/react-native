@@ -16,6 +16,7 @@ import TabBar from './my_component/TabBar';
 import TextInputBar from './my_component/TextInputBar';
 import ButtonItem from './my_component/ButtonItem';
 import FirstTab from './FirstTab';
+import FirstTabRight from './FirstTabRight';
 import {base_url,httpPostJson,httpPut} from './common';
 import moment from 'moment';
 import SecondTab from './SecondTab';
@@ -31,6 +32,7 @@ export default class superAccountIndex extends Component {
       message: props.message, // 超级账号登录后获取的 data 信息
       header: props.header, // http 请求头部信息
       isSubAccountDetailShow: false, // 是否显示当前子账号详细信息
+      isSubAccountRightEditShow: false, // 是否显示子账号权限编辑界面
       subAccountDetail: {}, // 子账号详细信息
       isSubAccountAddShow: false, // 是否显示新增子账号界面
       newSubAccount_account: '', // 新增子账号的子账号
@@ -48,7 +50,7 @@ export default class superAccountIndex extends Component {
   render() {
     return (
       <ScrollableTabView
-        style={{marginTop: 20, }}
+        style={{marginTop: 20, backgroundColor:'rgba(255,255,255,1)'}}
         initialPage={0}
         renderTabBar={() => <TabBar tabNames={['子账号','网关','个人','设置']} tabIcons={['ios-people','ios-paper','ios-body','ios-apps']}/>}
         tabBarPosition='bottom'
@@ -180,6 +182,39 @@ export default class superAccountIndex extends Component {
               </View>
             </TouchableWithoutFeedback>
           </Modal>
+
+          <Modal // 修改子账号权限模态窗口
+            visible={this.state.isSubAccountRightEditShow}
+            //从下面向上滑动 slide
+            //慢慢显示 fade
+            animationType = {'slide'}
+            //是否透明默认是不透明 false
+            transparent = {true}
+            //关闭时调用
+            onRequestClose={()=>{}}
+          >
+            <View style={{flex:1,justifyContent: 'center',backgroundColor:'rgba(0,0,0,0.8)'}}>
+              <View style={{padding:20,height:400, backgroundColor:'rgba(255,255,255,1)'}}>
+                <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
+                  <Text style={{fontSize:24,marginBottom:10}}>工程列表</Text>
+                </View>
+                <FirstTabRight 
+                  subAccounts={this.state.message.bindings} 
+                  // 传递 http 请求头
+                  header={this.state.header}
+                  // 传递超级账号编号
+                  superAccountId={this.state.message.superAccount.id}
+                />
+                <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
+                  <ButtonItem label="取 消" func={()=> this.setState({isSubAccountRightEditShow: false})}/>
+                  <ButtonItem label="提 交" 
+                    func={()=>{
+                    }}
+                  />
+                </View>
+              </View>
+            </View>
+          </Modal>
           <FirstTab
             // 传递绑定关系列表
             subAccounts={this.state.message.bindings}
@@ -197,7 +232,12 @@ export default class superAccountIndex extends Component {
                 rowIDEdit: rowIDEdit,
                 rowDataEdit: rowDataEdit
               });
-              //console.log(rowDataEdit);
+            }}
+            // 传递显示编辑子账号权限信息界面回调方法
+            callbackShowSubAccountRightEdit={()=>{
+              this.setState({
+                isSubAccountRightEditShow: true
+              });
             }}
             // 传递 http 请求头
             header={this.state.header}
