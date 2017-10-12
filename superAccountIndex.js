@@ -48,33 +48,6 @@ export default class superAccountIndex extends Component {
     };
     superAccountIndex.navigator=props.navigator;
     //console.log(global.storage);
-    // 设置及时同步数据函数
-    global.storage.sync = {
-      storageProjects(params){
-        httpPostJson(
-          base_url+"UIDesigner/"+params.syncParams.superAccountId+"/projects",
-          {},
-          params.syncParams.header,
-          (res)=>{
-            //console.log("网络请求工程列表",res);
-            if(res.errorcode==0){
-              global.storage.save({
-                key: 'storageProjects',  // 注意:请不要在key中使用_下划线符号!
-                data: res.data.projectList,
-                // 如果不指定过期时间，则会使用defaultExpires参数
-                // 如果设为null，则永不过期
-                expires: 1000 * 3600 * 0.25  // 15分钟 用户可设置
-              });
-              // 成功则调用resolve
-              params.resolve && params.resolve(res.data.projectList);
-            }else{
-              // 失败则调用reject
-              params.reject && params.reject(new Error('data parse error'));
-            }
-          }
-        );
-      }
-    }
   }
 
   render() {
@@ -266,6 +239,33 @@ export default class superAccountIndex extends Component {
             }}
             // 传递显示编辑子账号权限信息界面回调方法
             callbackShowSubAccountRightEdit={()=>{
+              // 设置及时同步数据函数
+              global.storage.sync = {
+                storageProjects(params){
+                  httpPostJson(
+                    base_url+"UIDesigner/"+params.syncParams.superAccountId+"/projects",
+                    {},
+                    params.syncParams.header,
+                    (res)=>{
+                      console.log("网络请求工程列表",res);
+                      if(res.errorcode==0){
+                        global.storage.save({
+                          key: 'storageProjects',  // 注意:请不要在key中使用_下划线符号!
+                          data: res.data.projectList,
+                          // 如果不指定过期时间，则会使用defaultExpires参数
+                          // 如果设为null，则永不过期
+                          expires: 5 * 1000//1000 * 3600 * 0.25  // 15分钟 用户可设置
+                        });
+                        // 成功则调用resolve
+                        params.resolve && params.resolve(res.data.projectList);
+                      }else{
+                        // 失败则调用reject
+                        params.reject && params.reject(new Error('data parse error'));
+                      }
+                    }
+                  );
+                }
+              }
               // 先从缓存中读取工程列表,如果没有则进行网络请求
               global.storage.load({
                 key: 'storageProjects',

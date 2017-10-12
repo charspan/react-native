@@ -32,44 +32,48 @@ export default class FirstTabRight extends Component{
       // 初始化工程列表
       projects: props.projects,
       // 初始化房间列表
-      rooms: []
-    }
-
-    // 设置及时同步数据函数
-    global.storage.sync = {
-      storageRooms(params){
-        console.log("params",params);
-        httpPostJson(base_url+"UIDesigner/"+params.syncParams.superAccountId+"/"+params.syncParams.projectId+"/rooms",{},params.syncParams.header,
-        (res)=>{
-          console.log("网络请求房间列表",res)
-          if(res.errorcode==0){
-            global.storage.save({
-              key: 'storageRooms',  // 注意:请不要在key中使用_下划线符号!
-              id: params.syncParams.projectId,
-              data: res.data.roomList,
-              // 如果不指定过期时间，则会使用defaultExpires参数
-              // 如果设为null，则永不过期
-              expires: 1000 * 3600 * 0.25  // 15分钟 用户可设置
-            });
-            // 成功则调用resolve
-            params.resolve && params.resolve(res.data.roomList);
-          }else{
-            // 失败则调用reject
-            params.reject && params.reject(new Error('data parse error'));    
-          }
-        });
+      rooms: [],
+      // 初始化权限信息, 以工程编号为 key, 房间编号集合为 value,其中房间编号集合以'.'为分隔符
+      /*
+        如:
+        {
+          1: "1_12_45",
+          31: "67"
+        }
+        // 代表当前子账号可以访问1号工程下的1号,12号,45号房间,以及31号工程下的67号房间
+       */
+      rights: {
       }
     }
-
   }
   
   // 绑定上下文 方法二 ()=>{}
   renderRow=(rowData,sectionID, rowID)=> {
+      var img = this.state.rights[rowData.id]==undefined ? require('./img/unChecked.png') : require('./img/checked.png');
       return (
         <View>
           <View style={styles.row}>
             <TouchableOpacity // 点击查看工程详情
               style={{flex:1}}
+              onPress={()=>{
+                if(this.state.rights[rowData.id]==undefined){
+                  this.state.rights[rowData.id]='.';
+                }else{
+                  delete this.state.rights[rowData.id];
+                }
+                this.setState({
+                  rights: this.state.rights
+                });
+                console.log(this.state.rights)
+              }}
+            >
+              <Image
+                style={styles.thumb}
+                source={img}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity // 点击查看工程详情
+              style={{flex:3}}
               onPress={()=>{
                 console.log("第"+rowID+"行被点击了");
                 Alert.alert('工程详情',JSON.stringify(rowData),[{text: '确定'}]);
@@ -81,6 +85,30 @@ export default class FirstTabRight extends Component{
             </TouchableOpacity>
             <TouchableOpacity //点击修改子账号权限信息
               onPress={()=>{
+                // 设置及时同步数据函数
+                global.storage.sync = {
+                  storageRooms(params){
+                    httpPostJson(base_url+"UIDesigner/"+params.syncParams.superAccountId+"/"+params.syncParams.projectId+"/rooms",{},params.syncParams.header,
+                    (res)=>{
+                      console.log("网络请求房间列表",res);
+                      if(res.errorcode==0){
+                        global.storage.save({
+                          key: 'storageRooms',  // 注意:请不要在key中使用_下划线符号!
+                          id: params.id,
+                          data: res.data.roomList,
+                          // 如果不指定过期时间，则会使用defaultExpires参数
+                          // 如果设为null，则永不过期
+                          expires: 5000//1000 * 3600 * 0.25  // 15分钟 用户可设置
+                        });
+                        // 成功则调用resolve
+                        params.resolve && params.resolve(res.data.roomList);
+                      }else{
+                        // 失败则调用reject
+                        params.reject && params.reject(new Error('data parse error'));    
+                      }
+                    });
+                  }
+                }
                 // 先从缓存中读取工程列表,如果没有则进行网络请求
                 global.storage.load({
                   key: 'storageRooms',
@@ -102,7 +130,6 @@ export default class FirstTabRight extends Component{
                   // 注意：这是异步返回的结果（不了解异步请自行搜索学习）
                   // 你只能在then这个方法内继续处理 rooms 数据,而不能在then以外处理,也没有办法“变成”同步返回
                   // 你也可以使用“看似”同步的async/await语法
-                  console.log("rooms",rooms);
                   this.setState({
                     rooms: rooms
                   });
