@@ -208,6 +208,11 @@ export default class superAccountIndex extends Component {
                   superAccountId={this.state.message.superAccount.id}
                   // 工程列表
                   projects={this.state.projects}
+                  callbackHide={()=>{
+                    this.setState({
+                      isSubAccountRightEditShow: false
+                    });
+                  }}
                 />
                 <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
                   <ButtonItem label="取 消" func={()=> this.setState({isSubAccountRightEditShow: false})}/>
@@ -254,7 +259,7 @@ export default class superAccountIndex extends Component {
                           data: res.data.projectList,
                           // 如果不指定过期时间，则会使用defaultExpires参数
                           // 如果设为null，则永不过期
-                          expires: 5 * 1000//1000 * 3600 * 0.25  // 15分钟 用户可设置
+                          expires: 1000 * 3600 * 0.25  // 15分钟 用户可设置
                         });
                         // 成功则调用resolve
                         params.resolve && params.resolve(res.data.projectList);

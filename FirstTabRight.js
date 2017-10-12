@@ -15,6 +15,7 @@ import {base_url,httpPostJson} from './common';
 import TextInputBar from './my_component/TextInputBar';
 import ButtonItem from './my_component/ButtonItem';
 import "./GlobalValue";
+import RoomList from './RoomList';
 
 export default class FirstTabRight extends Component{
   
@@ -43,7 +44,10 @@ export default class FirstTabRight extends Component{
         // 代表当前子账号可以访问1号工程下的1号,12号,45号房间,以及31号工程下的67号房间
        */
       rights: {
-      }
+      },
+      // 是否显示房间列表
+      isRoomsShow: false,
+      callbackHide: props.callbackHide
     }
   }
   
@@ -52,8 +56,38 @@ export default class FirstTabRight extends Component{
       var img = this.state.rights[rowData.id]==undefined ? require('./img/unChecked.png') : require('./img/checked.png');
       return (
         <View>
+        <Modal // 房间列表模态窗口
+          visible={this.state.isRoomsShow}
+          //从下面向上滑动 slide
+          //慢慢显示 fade
+          animationType = {global.animationType}
+          //是否透明默认是不透明 false
+          transparent = {true}
+          //关闭时调用
+          onRequestClose={()=>{}}
+        >
+          <View style={{flex:1,justifyContent: 'center',backgroundColor:'rgba(0,0,0,0.3)'}}>
+            <View style={{padding:20,height:400, backgroundColor:'rgba(255,255,255,1)'}}>
+              <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
+                <Text style={{fontSize:24,marginBottom:10}}>房间列表</Text>
+              </View>
+              <RoomList
+                superAccountId={this.state.superAccountId}
+                header={this.state.header}
+                rooms={this.state.rooms}
+              />
+              <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
+                <ButtonItem label="取 消" func={()=> this.setState({isRoomsShow: false})}/>
+                <ButtonItem label="提 交" 
+                  func={()=>{
+                  }}
+                />
+              </View>
+            </View>
+          </View>
+        </Modal>
           <View style={styles.row}>
-            <TouchableOpacity // 点击查看工程详情
+            <TouchableOpacity // 点击勾选当前工程
               style={{flex:1}}
               onPress={()=>{
                 if(this.state.rights[rowData.id]==undefined){
@@ -75,7 +109,7 @@ export default class FirstTabRight extends Component{
             <TouchableOpacity // 点击查看工程详情
               style={{flex:3}}
               onPress={()=>{
-                console.log("第"+rowID+"行被点击了");
+                //console.log("第"+rowID+"行被点击了");
                 Alert.alert('工程详情',JSON.stringify(rowData),[{text: '确定'}]);
               }}
             >
@@ -98,7 +132,7 @@ export default class FirstTabRight extends Component{
                           data: res.data.roomList,
                           // 如果不指定过期时间，则会使用defaultExpires参数
                           // 如果设为null，则永不过期
-                          expires: 5000//1000 * 3600 * 0.25  // 15分钟 用户可设置
+                          expires: 1000 * 3600 * 0.25  // 15分钟 用户可设置
                         });
                         // 成功则调用resolve
                         params.resolve && params.resolve(res.data.roomList);
@@ -131,8 +165,13 @@ export default class FirstTabRight extends Component{
                   // 你只能在then这个方法内继续处理 rooms 数据,而不能在then以外处理,也没有办法“变成”同步返回
                   // 你也可以使用“看似”同步的async/await语法
                   this.setState({
-                    rooms: rooms
+                    rooms: rooms,
+                    isRoomsShow: true
                   });
+                  console.log(this.state.isRoomsShow,rooms);
+
+                 // this.state.callbackHide();
+                  
                 }).catch(err => {
                   //如果没有找到数据且没有sync方法,或者有其他异常，则在catch中返回
                   switch (err.name) {
