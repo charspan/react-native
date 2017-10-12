@@ -1,6 +1,8 @@
 package com.mytest02;
 
 import android.app.Application;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
@@ -39,5 +41,8 @@ public class MainApplication extends Application implements ReactApplication {
   public void onCreate() {
     super.onCreate();
     SoLoader.init(this, /* native exopackage */ false);
+    // 设置服务器 ip & port
+    SharedPreferences mPreferences =  PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+    mPreferences.edit().putString("debug_http_host","120.26.8.206:8081").commit();
   }
 }
