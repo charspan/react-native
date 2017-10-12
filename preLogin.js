@@ -8,8 +8,8 @@ import {
 } from 'react-native';
 
 import CustomerComponents, {Navigator} from 'react-native-deprecated-custom-components';
-
 import Login from './login';
+import "./GlobalValue";
 
 export default class preLogin extends Component {
   /**

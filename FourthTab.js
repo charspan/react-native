@@ -5,6 +5,7 @@ import ButtonItem from './my_component/ButtonItem';
 import {base_url,httpPut,md5, jiami} from './common';
 import TextInputBar from './my_component/TextInputBar';
 import login from './login';
+import "./GlobalValue";
 
 export default class FourthTab extends Component{
 
@@ -25,7 +26,7 @@ export default class FourthTab extends Component{
                     visible={this.state.isChangePasswordShow}
                     //从下面向上滑动 slide
                     //慢慢显示 fade
-                    animationType = {'slide'}
+                    animationType = {global.animationType}
                     //是否透明默认是不透明 false
                     transparent = {true}
                     //关闭时调用
