@@ -26,7 +26,7 @@ export default class FourthTab extends Component{
                     visible={this.state.isChangePasswordShow}
                     //从下面向上滑动 slide
                     //慢慢显示 fade
-                    animationType = {global.animationType}
+                    //animationType = {global.animationType}
                     //是否透明默认是不透明 false
                     transparent = {true}
                     //关闭时调用
@@ -76,10 +76,13 @@ export default class FourthTab extends Component{
                         </View>
                     </View>
                 </Modal>
-                <View style={{flexDirection:'row',flex:1,alignSelf:'center',justifyContent: 'flex-end', padding:40,paddingLeft:50, backgroundColor:'rgba(255,255,255,1)'}}>
+                <View style={{flexDirection:'row',flex:1,alignSelf:'center',justifyContent: 'flex-end', padding:30,paddingLeft:50, backgroundColor:'rgba(255,255,255,1)'}}>
+                    <ButtonItem label="系统设置" func={()=> { Alert.alert('提示','暂未开放!',[{text: '确定'}]);}}/>
+                 </View>
+                <View style={{flexDirection:'row',flex:1,alignSelf:'center',justifyContent: 'flex-end', padding:30,paddingLeft:50, backgroundColor:'rgba(255,255,255,1)'}}>
                     <ButtonItem label="修改密码" func={()=> this.setState({isChangePasswordShow: true})}/>
                 </View>
-                <View style={{flexDirection:'row',flex:1,alignSelf:'center',justifyContent: 'flex-end', padding:40,paddingLeft:50, backgroundColor:'rgba(255,255,255,1)'}}>
+                <View style={{flexDirection:'row',flex:1,alignSelf:'center',justifyContent: 'flex-end', padding:30,paddingLeft:50, backgroundColor:'rgba(255,255,255,1)'}}>
                     <ButtonItem label="退出登录" func={()=> {
                         Alert.alert(
                             '提示',

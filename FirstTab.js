@@ -31,7 +31,7 @@ export default class FirstTab extends Component{
         data: props.subAccounts?props.subAccounts:[],
         /////////////////// isSubAccountEditShow: false,
       }
-      //console.log(this.state.data);
+      console.log(this.state.data);
     }
 
     // 从数组中移除某个元素

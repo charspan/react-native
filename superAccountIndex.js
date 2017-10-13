@@ -60,8 +60,7 @@ export default class superAccountIndex extends Component {
        */
       rights: {},
       currProjectId: -1, //当前正要编辑工程内部房间权限的工程编号
-      ///rightsOld: {}, // 当前编辑子账号上一次权限编辑情况
-      relativeId: -1, //当前关系编号
+      rightId: -1 ,//当前权限编号
     };
     superAccountIndex.navigator=props.navigator;
     //console.log(props.message);
@@ -74,9 +73,9 @@ export default class superAccountIndex extends Component {
           for(var j=0;j<res.data.rights.length;j++){
             if(subAccountId==res.data.rights[j].subAccountId){
               // console.log(subAccountId,res.data.rights[j]);
-              // 
-              this.state.message.bindings[i].relativeId=res.data.rights[j].id;
-              // 
+              // 追加权限信息编号
+              this.state.message.bindings[i].rightId=res.data.rights[j].id;
+              // 追加权限信息
               this.state.message.bindings[i].rightJson=res.data.rights[j].rightJson;
               //console.log(subAccountId,props.message.bindings[i]);
               break;
@@ -119,7 +118,7 @@ export default class superAccountIndex extends Component {
             visible={this.state.isSubAccountAddShow}
             //从下面向上滑动 slide
             //慢慢显示 fade
-            animationType = {global.animationType}
+            //animationType = {global.animationType}
             //是否透明默认是不透明 false
             transparent = {true}
             //关闭时调用
@@ -147,8 +146,9 @@ export default class superAccountIndex extends Component {
                           {account: this.state.newSubAccount_account,subRelatedName: this.state.newSubAccount_relativeName},
                           this.state.header,
                           (res)=>{
+                            console.log("新增绑定关系",res);
                             if(res.errorcode==0){
-                              this.firstTabRef.addValue({id: res.data.id, account: this.state.newSubAccount_account, subRelatedName: this.state.newSubAccount_relativeName, createTime: moment().format('YYYY-MM-DD HH:mm:ss'), subAccountId:res.data.subAccountId});
+                              this.firstTabRef.addValue({id: res.data.id,rightId: res.data.rightId, rightJson:"",account: this.state.newSubAccount_account, subRelatedName: this.state.newSubAccount_relativeName, createTime: moment().format('YYYY-MM-DD HH:mm:ss'), subAccountId:res.data.subAccountId});
                               this.setState({isSubAccountAddShow: false});
                               // 跳转出权限配置界面...
                               // code in block
@@ -168,7 +168,7 @@ export default class superAccountIndex extends Component {
             visible={this.state.isSubAccountEditShow}
             //从下面向上滑动 slide
             //慢慢显示 fade
-            animationType = {global.animationType}
+            //animationType = {global.animationType}
             //是否透明默认是不透明 false
             transparent = {true}
             //关闭时调用
@@ -203,7 +203,7 @@ export default class superAccountIndex extends Component {
             visible={this.state.isSubAccountDetailShow}
             //从下面向上滑动 slide
             //慢慢显示 fade
-            animationType = {global.animationType}
+            //animationType = {global.animationType}
             //是否透明默认是不透明 false
             transparent = {true}
             //关闭时调用
@@ -214,6 +214,7 @@ export default class superAccountIndex extends Component {
                 <View style={{flex:1,alignSelf:'center',justifyContent: 'center', padding:40,paddingLeft:50, backgroundColor:'rgba(255,255,255,1)'}}>
                   <Text style={{alignSelf:'center',fontSize:20,fontWeight:'bold'}}>子账号详细信息{"\n"}</Text>
                   <Text style={{alignSelf:'flex-start',fontSize:18}}>关系编号:  {this.state.subAccountDetail.id+"\n"}</Text>
+                  <Text style={{alignSelf:'flex-start',fontSize:18}}>权限编号:  {this.state.subAccountDetail. rightId+"\n"}</Text>
                   <Text style={{alignSelf:'flex-start',fontSize:18}}>昵称:  {this.state.subAccountDetail.subRelatedName+"\n"}</Text>
                   <Text style={{alignSelf:'flex-start',fontSize:18}}>账号:  {this.state.subAccountDetail.account+"\n"}</Text>
                   <Text style={{alignSelf:'flex-start',fontSize:18}}>账号编号:  {this.state.subAccountDetail.subAccountId+"\n"}</Text>
@@ -322,15 +323,18 @@ export default class superAccountIndex extends Component {
                   <ButtonItem label="提 交" 
                     func={()=>{
                       // 在这里提交修改子账号权限信息的网络请求
-                      //console.log("superAccountIndex.js 当前子账号权限修改结果",this.state.rights);
-                      httpPut(base_url+"subAccountRights/"+this.state.relativeId,{rightJson: JSON.stringify(this.state.rights)},this.state.header,(res)=>{
-                        if(res.errorcode==0){
-                          this.firstTabRef.updateRights(this.state.rowIDEdit,this.state.rowDataEdit,JSON.stringify(this.state.rights));
-                          this.setState({isProjectShow: false});
-                        }else{
-                          Alert.alert('提示','修改权限失败,请重试!',[{text: '确定'}]);
-                        }
-                      });
+                      console.log("superAccountIndex.js 当前子账号权限修改结果",this.state.rights);
+                      if(JSON.stringify(this.state.rights)!=this.state.rowDataEdit.rightJson){
+                        httpPut(base_url+"subAccountRights/"+this.state.rightId,{rightJson: JSON.stringify(this.state.rights)},this.state.header,(res)=>{
+                          if(res.errorcode==0){
+                            this.firstTabRef.updateRights(this.state.rowIDEdit,this.state.rowDataEdit,JSON.stringify(this.state.rights));
+                            this.setState({isProjectShow: false});
+                          }else{
+                            console.log(res);
+                            Alert.alert('提示','修改权限失败,请重试!',[{text: '确定'}]);
+                          }
+                        });
+                      }
                     }}
                   />
                 </View>
@@ -401,13 +405,13 @@ export default class superAccountIndex extends Component {
               //console.log(JSON.parse(rowData.rightJson));
               if(rowData.rightJson.indexOf('jurisdictionList')==-1){
                 this.setState({
-                  rowIDEdit: rowData.id,
+                  rowIDEdit: rowID,
                   rowDataEdit: rowData,
-                  relativeId: rowData.relativeId,
-                  rights: rowData.rightJson==""?{}:JSON.parse(rowData.rightJson)
+                  rightId: rowData.rightId,
+                  rights: rowData.rightJson == "" ? {} : JSON.parse(rowData.rightJson)
                 });
               }else{
-                Alert.alert('权限信息',JSON.stringify(rowData.rightJson));
+                Alert.alert('权限格式不合法',JSON.stringify(rowData.rightJson));
                 return;
               }
               // 设置及时同步数据函--获取工程列表
@@ -518,9 +522,7 @@ export default class superAccountIndex extends Component {
             <Text style={{fontSize:30}}>个人信息</Text>
             <TouchableOpacity // 点击显示修改个人信息模态窗口
               onPress={()=>{
-                console.log('个人信息',this.state.message.superAccount);
                 this.setState({isPersonalEditShow: true});
-                //Alert.alert('提示','当前网关已是最新版本,无需升级!',[{text: '确定'}]);
               }}
             >
               <Image 
@@ -537,7 +539,7 @@ export default class superAccountIndex extends Component {
             visible={this.state.isPersonalEditShow}
             //从下面向上滑动 slide
             //慢慢显示 fade
-            animationType = {global.animationType}
+            //animationType = {global.animationType}
             //是否透明默认是不透明 false
             transparent = {true}
             //关闭时调用
