@@ -17,14 +17,14 @@ import TextInputBar from './my_component/TextInputBar';
 import ButtonItem from './my_component/ButtonItem';
 import FirstTab from './FirstTab';
 import FirstTabRight from './FirstTabRight';
-import {base_url,httpPostJson,httpPut} from './common';
+import {base_url,httpPostJson,httpPut,httpGet} from './common';
 import moment from 'moment';
 import SecondTab from './SecondTab';
 import ThirdTab from './ThirdTab';
 import FourthTab from './FourthTab';
 import "./GlobalValue";
 import RoomList from './RoomList';
-import _ from 'lodash';
+//import _ from 'lodash';
 
 export default class superAccountIndex extends Component {
 
@@ -60,10 +60,31 @@ export default class superAccountIndex extends Component {
        */
       rights: {},
       currProjectId: -1, //当前正要编辑工程内部房间权限的工程编号
-      rightsOld: {}, // 上一次权限编辑情况
+      ///rightsOld: {}, // 当前编辑子账号上一次权限编辑情况
+      relativeId: -1, //当前关系编号
     };
     superAccountIndex.navigator=props.navigator;
-    //console.log(global.storage);
+    //console.log(props.message);
+    httpGet(base_url+"subAccountRights",{superAccountId:this.state.message.superAccount.id},this.state.header,(res)=>{
+     // console.log(res.data.rights);
+      if(res.errorcode==0){
+        for(var i=0;i<props.message.bindings.length;i++){
+          var subAccountId=props.message.bindings[i].subAccountId;
+          //console.log(subAccountId);
+          for(var j=0;j<res.data.rights.length;j++){
+            if(subAccountId==res.data.rights[j].subAccountId){
+              // console.log(subAccountId,res.data.rights[j]);
+              // 
+              this.state.message.bindings[i].relativeId=res.data.rights[j].id;
+              // 
+              this.state.message.bindings[i].rightJson=res.data.rights[j].rightJson;
+              //console.log(subAccountId,props.message.bindings[i]);
+              break;
+            }
+          }
+        }
+      }
+    });
   }
 
   render() {
@@ -226,7 +247,7 @@ export default class superAccountIndex extends Component {
                   projects={this.state.projects}
                   // 传递权限信息
                   rights={this.state.rights}
-                  callbackHide={(projectId/*,rights*/)=>{
+                  callbackShowRooms={(projectId/*,rights*/)=>{
                     // 现将修改的工程编号和权限信息保存
                     this.setState({
                       currProjectId: projectId,
@@ -297,11 +318,19 @@ export default class superAccountIndex extends Component {
                   }}
                 />
                 <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
-                  <ButtonItem label="取 消" func={()=> this.setState({isProjectShow: false,rights: this.state.rightsOld})}/>
+                  <ButtonItem label="取 消" func={()=> this.setState({isProjectShow: false})}/>
                   <ButtonItem label="提 交" 
                     func={()=>{
                       // 在这里提交修改子账号权限信息的网络请求
-                      this.setState({isProjectShow: false});
+                      //console.log("superAccountIndex.js 当前子账号权限修改结果",this.state.rights);
+                      httpPut(base_url+"subAccountRights/"+this.state.relativeId,{rightJson: JSON.stringify(this.state.rights)},this.state.header,(res)=>{
+                        if(res.errorcode==0){
+                          this.firstTabRef.updateRights(this.state.rowIDEdit,this.state.rowDataEdit,JSON.stringify(this.state.rights));
+                          this.setState({isProjectShow: false});
+                        }else{
+                          Alert.alert('提示','修改权限失败,请重试!',[{text: '确定'}]);
+                        }
+                      });
                     }}
                   />
                 </View>
@@ -339,7 +368,7 @@ export default class superAccountIndex extends Component {
                         isProjectShow: true
                       });
                       // 按照对象存储的特点,这里的权限就是最新的权限信息
-                      console.log(this.state.rights);
+                      //console.log(this.state.rights);
                     }}
                   />
                 </View>
@@ -366,11 +395,21 @@ export default class superAccountIndex extends Component {
               });
             }}
             // 传递显示编辑子账号权限信息界面回调方法
-            callbackShowProjects={()=>{
-              // 保留原始权限信息
-              this.setState({
-                rightsOld: _.cloneDeep(this.state.rights)
-              });
+            callbackShowProjects={(rowID,rowData)=>{
+              //console.log(rowID,rowData);
+              //console.log(rowData.rightJson);
+              //console.log(JSON.parse(rowData.rightJson));
+              if(rowData.rightJson.indexOf('jurisdictionList')==-1){
+                this.setState({
+                  rowIDEdit: rowData.id,
+                  rowDataEdit: rowData,
+                  relativeId: rowData.relativeId,
+                  rights: rowData.rightJson==""?{}:JSON.parse(rowData.rightJson)
+                });
+              }else{
+                Alert.alert('权限信息',JSON.stringify(rowData.rightJson));
+                return;
+              }
               // 设置及时同步数据函--获取工程列表
               global.storage.sync = {
                 storageProjects(params){

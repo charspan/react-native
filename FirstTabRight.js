@@ -34,7 +34,7 @@ export default class FirstTabRight extends Component{
       // 初始化权限信息
       rights: props.rights,
       // 隐藏工程列表显示房间列表回调方法
-      callbackHide: props.callbackHide
+      callbackShowRooms: props.callbackShowRooms
     }
   }
   
@@ -78,7 +78,7 @@ export default class FirstTabRight extends Component{
             <TouchableOpacity //点击修改子账号权限信息
               onPress={()=>{
                 // 隐藏工程列表显示房间列表
-                this.state.callbackHide(rowData.id);//,this.state.rights);
+                this.state.callbackShowRooms(rowData.id);//,this.state.rights);
               }}
             >
               <Image style={styles.thumb} source={require('./img/power.png')} />

@@ -31,6 +31,7 @@ export default class FirstTab extends Component{
         data: props.subAccounts?props.subAccounts:[],
         /////////////////// isSubAccountEditShow: false,
       }
+      //console.log(this.state.data);
     }
 
     // 从数组中移除某个元素
@@ -64,6 +65,14 @@ export default class FirstTab extends Component{
     // 父组件 ref 调用: 修改某行数据
     editValue(rowID , rowData , newSubRectiveName){
       rowData.subRelatedName=newSubRectiveName;
+      this.state.data.splice(rowID,1,rowData);
+      this.setState({
+        data: this.state.data
+      });
+    }
+
+    updateRights(rowID , rowData , rights){
+      rowData.rightJson=rights;
       this.state.data.splice(rowID,1,rowData);
       this.setState({
         data: this.state.data
@@ -123,7 +132,7 @@ export default class FirstTab extends Component{
 
               <TouchableOpacity //点击修改子账号权限信息
                 onPress={()=>{
-                  this.props.callbackShowProjects();
+                  this.props.callbackShowProjects(rowID,rowData);
                 }}
               >
                 <Image style={styles.thumb} source={require('./img/power.png')} />
