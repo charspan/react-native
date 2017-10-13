@@ -23,6 +23,7 @@ import SecondTab from './SecondTab';
 import ThirdTab from './ThirdTab';
 import FourthTab from './FourthTab';
 import "./GlobalValue";
+import RoomList from './RoomList'
 
 export default class superAccountIndex extends Component {
 
@@ -45,6 +46,8 @@ export default class superAccountIndex extends Component {
       personalEdit_nickname: '', // 编辑个人昵称
       personalEdit_mobile: '', //编辑个人手机号
       projects: [], // 工程列表
+      isRoomsShow: false, // 是否显示房间列表
+      rooms: [], // 房间列表
     };
     superAccountIndex.navigator=props.navigator;
     //console.log(global.storage);
@@ -208,10 +211,79 @@ export default class superAccountIndex extends Component {
                   superAccountId={this.state.message.superAccount.id}
                   // 工程列表
                   projects={this.state.projects}
-                  callbackHide={()=>{
-                    this.setState({
-                      isSubAccountRightEditShow: false
-                    });
+                  callbackHide={(projectId)=>{
+
+
+ // 设置及时同步数据函数
+ global.storage.sync = {
+  storageRooms(params){
+    httpPostJson(base_url+"UIDesigner/"+params.syncParams.superAccountId+"/"+params.syncParams.projectId+"/rooms",{},params.syncParams.header,
+    (res)=>{
+      console.log("网络请求房间列表",res);
+      if(res.errorcode==0){
+        global.storage.save({
+          key: 'storageRooms',  // 注意:请不要在key中使用_下划线符号!
+          id: params.id,
+          data: res.data.roomList,
+          // 如果不指定过期时间，则会使用defaultExpires参数
+          // 如果设为null，则永不过期
+          expires: 1000 * 3600 * 0.25  // 15分钟 用户可设置
+        });
+        // 成功则调用resolve
+        params.resolve && params.resolve(res.data.roomList);
+      }else{
+        // 失败则调用reject
+        params.reject && params.reject(new Error('data parse error'));    
+      }
+    });
+  }
+}
+// 先从缓存中读取工程列表,如果没有则进行网络请求
+global.storage.load({
+  key: 'storageRooms',
+  id: projectId,
+  // autoSync(默认为true)意味着在没有找到数据或数据过期时自动调用相应的sync方法
+  autoSync: true,
+  // syncInBackground(默认为true)意味着如果数据过期，
+  // 在调用sync方法的同时先返回已经过期的数据。
+  // 设置为false的话，则等待sync方法提供的最新数据(当然会需要更多时间)。
+  syncInBackground: false,
+  // 你还可以给sync方法传递额外的参数
+  syncParams: {// 当找不到缓存数据的时候自动调用方法的参数
+      superAccountId: this.state.message.superAccount.id,
+      projectId: projectId,
+      header: this.state.header
+  },
+}).then( rooms => {
+  // 如果找到数据，则在then方法中返回
+  // 注意：这是异步返回的结果（不了解异步请自行搜索学习）
+  // 你只能在then这个方法内继续处理 rooms 数据,而不能在then以外处理,也没有办法“变成”同步返回
+  // 你也可以使用“看似”同步的async/await语法
+  this.setState({
+    rooms: rooms,
+    isSubAccountRightEditShow: false,
+    isRoomsShow: true
+  });
+  console.log(this.state.isRoomsShow,rooms);
+  
+  
+}).catch(err => {
+  //如果没有找到数据且没有sync方法,或者有其他异常，则在catch中返回
+  switch (err.name) {
+    case 'NotFoundError':
+      // TODO;
+    break;
+    case 'ExpiredError':
+      // TODO
+    break;
+  }
+});
+
+
+                    // this.setState({
+                    //   isSubAccountRightEditShow: false,
+                    //   isRoomsShow: true
+                    // });
                   }}
                 />
                 <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
@@ -224,6 +296,37 @@ export default class superAccountIndex extends Component {
               </View>
             </View>
           </Modal>
+
+          <Modal // 房间列表模态窗口
+          visible={this.state.isRoomsShow}
+          //从下面向上滑动 slide
+          //慢慢显示 fade
+          animationType = {global.animationType}
+          //是否透明默认是不透明 false
+          transparent = {true}
+          //关闭时调用
+          onRequestClose={()=>{}}
+        >
+          <View style={{flex:1,justifyContent: 'center',backgroundColor:'rgba(0,0,0,0.3)'}}>
+            <View style={{padding:20,height:400, backgroundColor:'rgba(255,255,255,1)'}}>
+              <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
+                <Text style={{fontSize:24,marginBottom:10}}>房间列表</Text>
+              </View>
+              <RoomList
+                superAccountId={this.state.superAccountId}
+                header={this.state.header}
+                rooms={this.state.rooms}
+              />
+              <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
+                <ButtonItem label="取 消" func={()=> this.setState({isRoomsShow: false,isSubAccountRightEditShow: true})}/>
+                <ButtonItem label="提 交" 
+                  func={()=>{
+                  }}
+                />
+              </View>
+            </View>
+          </View>
+        </Modal>
           <FirstTab
             // 传递绑定关系列表
             subAccounts={this.state.message.bindings}
