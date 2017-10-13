@@ -14,7 +14,6 @@ import {
 import {base_url,httpPostJson} from './common';
 import TextInputBar from './my_component/TextInputBar';
 import ButtonItem from './my_component/ButtonItem';
-//import "./GlobalValue";
 
 export default class RoomList extends Component{
   
@@ -29,46 +28,62 @@ export default class RoomList extends Component{
       dataSource : new ListView.DataSource({
         rowHasChanged:(r1,r2)=>r1!==r2
       }),
+      // 获取工程编号
+      projectId: props.projectId,
       // 初始化工程列表
       rooms: props.rooms,
-      rights:{
-        
-      }
+      // 初始化子账号权限信息
+      rights: props.rights
     }
   }
 
   renderRow=(rowData,sectionID, rowID)=> {
-      var img = this.state.rights[rowData.id]==undefined ? require('./img/unChecked.png') : require('./img/checked.png');
-      return (
-        <View>
-          <View style={styles.row}>
-            <TouchableOpacity // 点击勾选当前房间
-              style={{flex:1}}
-              onPress={()=>{
-              }}
-            >
-              <Image
-                style={styles.thumb}
-                source={img}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity // 点击查看房间详情
-              style={{flex:3}}
-              onPress={()=>{
-                console.log("第"+rowID+"行被点击了");
-                Alert.alert('工程详情',JSON.stringify(rowData),[{text: '确定'}]);
-              }}
-            >
-              <Text style={{fontSize:16,color:'blue'}}>
-                {//"编号: "+rowData.id+"  名称: "+rowData.name + "\n备注: " +rowData.remark
-                JSON.stringify(rowData)
+    var img
+    if(this.state.rights[this.state.projectId]==undefined){
+      img=require('./img/unChecked.png');
+    } else {
+      img = this.state.rights[this.state.projectId].indexOf(rowData.id)==-1 ? require('./img/unChecked.png') : require('./img/checked.png');
+    }
+    return (
+      <View>
+        <View style={styles.row}>
+          <TouchableOpacity // 点击勾选当前房间
+            style={{flex:1}}
+            onPress={()=>{
+              if(this.state.rights[this.state.projectId]==undefined){
+                this.state.rights[this.state.projectId]='.'+rowData.id+'.';
+              }else{
+                if(this.state.rights[this.state.projectId].indexOf(rowData.id)==-1){
+                  this.state.rights[this.state.projectId]+=rowData.id+'.';
+                }else{
+                  this.state.rights[this.state.projectId]=this.state.rights[this.state.projectId].replace(rowData.id+'.','');
+                }
               }
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View style={{height:2,backgroundColor:'white'}} />
+              this.setState({
+                rights: this.state.rights
+              });
+            }}
+          >
+            <Image
+              style={styles.thumb}
+              source={img}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity // 点击查看房间详情
+            style={{flex:3}}
+            onPress={()=>{
+              //console.log("第"+rowID+"行被点击了");
+              Alert.alert('房间详情',JSON.stringify(rowData),[{text: '确定'}]);
+            }}
+          >
+            <Text style={{fontSize:18,color:'blue'}}>
+              {"编号: "+rowData.id+"  名称: "+rowData.name}
+            </Text>
+          </TouchableOpacity>
         </View>
-      );
+        <View style={{height:2,backgroundColor:'white'}} />
+      </View>
+    );
   }
   
   render() {

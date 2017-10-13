@@ -31,18 +31,9 @@ export default class FirstTabRight extends Component{
       }),
       // 初始化工程列表
       projects: props.projects,
-      // 初始化权限信息, 以工程编号为 key, 房间编号集合为 value,其中房间编号集合以'.'为分隔符
-      /*
-        如:
-        {
-          1: "1_12_45",
-          31: "67"
-        }
-        // 代表当前子账号可以访问1号工程下的1号,12号,45号房间,以及31号工程下的67号房间
-       */
-      rights: {
-      },
-      
+      // 初始化权限信息
+      rights: props.rights,
+      // 隐藏工程列表显示房间列表回调方法
       callbackHide: props.callbackHide
     }
   }
@@ -65,7 +56,7 @@ export default class FirstTabRight extends Component{
                 this.setState({
                   rights: this.state.rights
                 });
-                console.log(this.state.rights)
+                console.log("子页面right:",this.state.rights);
               }}
             >
               <Image
@@ -87,7 +78,7 @@ export default class FirstTabRight extends Component{
             <TouchableOpacity //点击修改子账号权限信息
               onPress={()=>{
                 // 隐藏工程列表显示房间列表
-                this.state.callbackHide(rowData.id);
+                this.state.callbackHide(rowData.id);//,this.state.rights);
               }}
             >
               <Image style={styles.thumb} source={require('./img/power.png')} />

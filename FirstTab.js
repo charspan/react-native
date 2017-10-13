@@ -120,13 +120,15 @@ export default class FirstTab extends Component{
                   {"昵称: "+rowData.subRelatedName + "\n账号: " +rowData.account}
                 </Text>
               </TouchableOpacity>
+
               <TouchableOpacity //点击修改子账号权限信息
                 onPress={()=>{
-                  this.props.callbackShowSubAccountRightEdit();
+                  this.props.callbackShowProjects();
                 }}
               >
                 <Image style={styles.thumb} source={require('./img/power.png')} />
               </TouchableOpacity>
+
               <TouchableOpacity // 点击修改子账号绑定关系相对昵称
                 onPress={()=>{
                   this.props.callbackShowSubAccountEdit(rowID,rowData);
