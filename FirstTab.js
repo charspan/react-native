@@ -31,7 +31,7 @@ export default class FirstTab extends Component{
         data: props.subAccounts?props.subAccounts:[],
         /////////////////// isSubAccountEditShow: false,
       }
-      console.log(this.state.data);
+      //console.log(this.state.data);
     }
 
     // 从数组中移除某个元素
@@ -185,6 +185,11 @@ export default class FirstTab extends Component{
           dataSource={this.state.dataSource.cloneWithRows(this.state.data)}
           renderRow={this.renderRow}
           isSubAccountEditShowsVerticalScrollIndicator={false}
+          initialListSize={7}
+          pageSize={1}
+          onEndReached={()=>{
+            console.log("subAccounts onEndReached");
+          }}
         />
       );
     }

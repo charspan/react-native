@@ -93,6 +93,11 @@ export default class RoomList extends Component{
         renderRow={this.renderRow}
         isSubAccountEditShowsVerticalScrollIndicator={false}
         enableEmptySections = {true}
+        initialListSize={4}
+        pageSize={1}
+        onEndReached={()=>{
+          console.log("room onEndReached");
+        }}
       />
     );
   }
