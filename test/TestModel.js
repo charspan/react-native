@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Text,StyleSheet } from 'react-native';
 
-export default class SecondTab extends Component{
+export default class TestModel extends Component{
 
     constructor(props){
         super(props);

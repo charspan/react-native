@@ -9,11 +9,10 @@ import {
   Alert,
   Modal
 } from'react-native';
-import {base_url,httpDelete} from './common';
-import TextInputBar from './my_component/TextInputBar';
-import ButtonItem from './my_component/ButtonItem';
+import {base_url,httpDelete} from '../common';
+import TextInputBar from '../my_component/TextInputBar';
+import ButtonItem from '../my_component/ButtonItem';
 
-// 遗留问题: 为什么TextInputBar获取不到用户的输入? 已用'//////////////////////////'注释 现已用其他方法解决获取用户输入的问题
 export default class FirstTab extends Component{
 
     constructor(props){     
@@ -29,7 +28,6 @@ export default class FirstTab extends Component{
         }),
         // 获取子账号绑定关系列表
         data: props.subAccounts?props.subAccounts:[],
-        /////////////////// isSubAccountEditShow: false,
       }
       //console.log(this.state.data);
     }
@@ -44,12 +42,14 @@ export default class FirstTab extends Component{
       }
     }
 
-    // 父组件 ref 调用: 新增子账号绑定关系
+    // 父组件 ref 调用: 新增子账号绑定关系 & 自动弹出新增子账号绑定关系的编辑权限界面
     addValue(data){
+      console.log("add",data);
       this.state.data.push(data);
       this.setState({
         data: this.state.data
       });
+      this.props.callbackShowProjects(this.state.data.length-1,data);
     }
 
     // 父组件 ref 调用: 验证新增的子账号是否已经存在
@@ -83,42 +83,7 @@ export default class FirstTab extends Component{
     renderRow=(rowData,sectionID, rowID)=> {
         return (
           <View>
-            <View style={styles.row}
-          ///////////////////////实际在 View 标签内部,为了注释放在此处/////////////////
-          //   <Modal // 修改子账号绑定关系模态窗口
-          //   visible={this.state.isSubAccountEditShow}
-          //   //从下面向上滑动 slide
-          //   //慢慢显示 fade
-          //   animationType = {'slide'}
-          //   //是否透明默认是不透明 false
-          //   transparent = {true}
-          //   //关闭时调用
-          //   onRequestClose={()=> console.log("onRequestClose")}
-          // >
-          //   <View style={{flex:1,justifyContent: 'center',backgroundColor:'rgba(0,0,0,0.8)'}}>
-          //     <View style={{padding:15,height:150, backgroundColor:'rgba(255,255,255,1)'}}>
-          //       <TextInputBar name="昵称" txtHide="请输入对方昵称呼" ref={node=>this.editSubAccount_relativeName=node}/>
-          //       <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
-          //         <ButtonItem label="取 消" func={()=> this.setState({isSubAccountEditShow: false})}/>
-          //         <ButtonItem label="提 交" 
-          //           func={()=>{
-          //             ///////////////////////////////////很奇怪得不到输入的值////////////////////////////////
-          //             console.log(this)
-          //             console.log(this.editSubAccount_relativeName.getValue());
-          //             // rowData.subRelatedName=this.editSubAccount_relativeName.getValue();
-          //             // this.state.data.splice(rowID,1,rowData);
-          //             // this.setState({
-          //             //   data: this.state.data,
-          //             //   isSubAccountEditShow: false
-          //             // });
-          //           }}
-          //         />
-          //       </View>
-          //     </View>
-          //   </View>
-          // </Modal>
-          /////////////////////////////////////////////////////////////////////////////////////
-            >
+            <View style={styles.row}>
               <TouchableOpacity // 点击查看子账号详情
                 style={{flex:1}}
                 onPress={()=>{
@@ -135,22 +100,21 @@ export default class FirstTab extends Component{
                   this.props.callbackShowProjects(rowID,rowData);
                 }}
               >
-                <Image style={styles.thumb} source={require('./img/power.png')} />
+                <Image style={styles.thumb} source={require('../img/power.png')} />
               </TouchableOpacity>
 
               <TouchableOpacity // 点击修改子账号绑定关系相对昵称
                 onPress={()=>{
                   this.props.callbackShowSubAccountEdit(rowID,rowData);
-                  /////////////////this.setState({isSubAccountEditShow: true});
                 }}
               >
-                <Image style={styles.thumb} source={require('./img/edit.jpg')} />
+                <Image style={styles.thumb} source={require('../img/edit.jpg')} />
               </TouchableOpacity>
               <TouchableOpacity // 点击删除子账号绑定关系
                 onPress={()=>{
                   Alert.alert(
                     '提示',
-                    '确定要删除子账号"'+rowData.account+'"吗?',
+                    '确定要删除与子账号"'+rowData.account+'"的绑定关系吗?',
                     [
                       {text: '取消', onPress: () => {}, style: 'cancel'},
                       {text: '确定', onPress: () => {
@@ -162,7 +126,7 @@ export default class FirstTab extends Component{
                                 data: this.state.data
                               });
                             }else{
-                              Alert.alert('错误提示','删除子账号失败,请重试!',[{text: '确定'}]);
+                              Alert.alert('错误提示','删除子账号绑定关系失败,请重试!',[{text: '确定'}]);
                             }
                           }
                         );
@@ -171,7 +135,7 @@ export default class FirstTab extends Component{
                   );
                 }}
               >
-                <Image style={styles.thumb} source={require('./img/trash.jpg')} />
+                <Image style={styles.thumb} source={require('../img/trash.jpg')} />
               </TouchableOpacity>
             </View>
             <View style={{height:2,backgroundColor:'white'}} />
@@ -182,14 +146,16 @@ export default class FirstTab extends Component{
     render() {
       return (
         <ListView
+          removeClippedSubviews={true}
+          enableEmptySections = {true}
           dataSource={this.state.dataSource.cloneWithRows(this.state.data)}
           renderRow={this.renderRow}
-          isSubAccountEditShowsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
           initialListSize={7}
           pageSize={1}
-          onEndReached={()=>{
-            console.log("subAccounts onEndReached");
-          }}
+          // onEndReached={()=>{
+          //   console.log("subAccounts onEndReached");
+          // }}
         />
       );
     }

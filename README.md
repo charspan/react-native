@@ -13,3 +13,7 @@
 5. 目前 ios 客户端js服务器的 ip 和 port 没有改变
 
 6. 用户界面自定义设置未实现
+
+## 启动指令
+
+1. npm start -- --reset-cache

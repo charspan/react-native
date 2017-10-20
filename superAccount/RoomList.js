@@ -11,9 +11,9 @@ import {
   Modal,
   AsyncStorage
 } from'react-native';
-import {base_url,httpPostJson} from './common';
-import TextInputBar from './my_component/TextInputBar';
-import ButtonItem from './my_component/ButtonItem';
+import {base_url,httpPostJson} from '../common';
+import TextInputBar from '../my_component/TextInputBar';
+import ButtonItem from '../my_component/ButtonItem';
 
 export default class RoomList extends Component{
   
@@ -40,9 +40,9 @@ export default class RoomList extends Component{
   renderRow=(rowData,sectionID, rowID)=> {
     var img
     if(this.state.rights[this.state.projectId]==undefined){
-      img=require('./img/unChecked.png');
+      img=require('../img/unChecked.png');
     } else {
-      img = this.state.rights[this.state.projectId].indexOf(rowData.id)==-1 ? require('./img/unChecked.png') : require('./img/checked.png');
+      img = this.state.rights[this.state.projectId].indexOf(rowData.id)==-1 ? require('../img/unChecked.png') : require('../img/checked.png');
     }
     return (
       <View>
@@ -89,10 +89,11 @@ export default class RoomList extends Component{
   render() {
     return (
       <ListView
+        removeClippedSubviews={true}
+        enableEmptySections = {true}
         dataSource={this.state.dataSource.cloneWithRows(this.state.rooms)}
         renderRow={this.renderRow}
-        isSubAccountEditShowsVerticalScrollIndicator={false}
-        enableEmptySections = {true}
+        showsVerticalScrollIndicator={false}
         initialListSize={4}
         pageSize={1}
         onEndReached={()=>{

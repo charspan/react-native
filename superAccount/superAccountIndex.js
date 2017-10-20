@@ -12,17 +12,17 @@ import {
 } from 'react-native';
 
 import ScrollableTabView from 'react-native-scrollable-tab-view';
-import TabBar from './my_component/TabBar';
-import TextInputBar from './my_component/TextInputBar';
-import ButtonItem from './my_component/ButtonItem';
+import TabBar from '../my_component/TabBar';
+import TextInputBar from '../my_component/TextInputBar';
+import ButtonItem from '../my_component/ButtonItem';
 import FirstTab from './FirstTab';
 import FirstTabRight from './FirstTabRight';
-import {base_url,httpPostJson,httpPut,httpGet} from './common';
+import {base_url,httpPostJson,httpPut,httpGet} from '../common';
 import moment from 'moment';
 import SecondTab from './SecondTab';
 import ThirdTab from './ThirdTab';
 import FourthTab from './FourthTab';
-import "./GlobalValue";
+import "../GlobalValue";
 import RoomList from './RoomList';
 //import _ from 'lodash';
 
@@ -110,7 +110,7 @@ export default class superAccountIndex extends Component {
                   height: 40,
                   borderRadius: 10
                 }}
-                source={require('./img/plus.png')}
+                source={require('../img/plus.png')}
               />
             </TouchableOpacity>
           </View>
@@ -139,21 +139,18 @@ export default class superAccountIndex extends Component {
                       // ...暂时不做任何验证...
                       // 验证子账号是否存在
                       if(this.firstTabRef.hasSameValue(this.state.newSubAccount_account)){
-                        Alert.alert('错误提示','该子账号已经存在!',[{text: '确定'}]);
+                        Alert.alert('错误提示','该子账号的绑定关系已经存在!',[{text: '确定'}]);
                       } else {
                         // 进行网络请求
                         httpPostJson(base_url+'relative',
                           {account: this.state.newSubAccount_account,subRelatedName: this.state.newSubAccount_relativeName},
                           this.state.header,
                           (res)=>{
-                            console.log("新增绑定关系",res);
                             if(res.errorcode==0){
-                              this.firstTabRef.addValue({id: res.data.id,rightId: res.data.rightId, rightJson:"",account: this.state.newSubAccount_account, subRelatedName: this.state.newSubAccount_relativeName, createTime: moment().format('YYYY-MM-DD HH:mm:ss'), subAccountId:res.data.subAccountId});
                               this.setState({isSubAccountAddShow: false});
-                              // 跳转出权限配置界面...
-                              // code in block
+                              this.firstTabRef.addValue({id: res.data.id,rightId: res.data.rightId, rightJson:"",account: this.state.newSubAccount_account, subRelatedName: this.state.newSubAccount_relativeName, createTime: moment().format('YYYY-MM-DD HH:mm:ss'), subAccountId:res.data.subAccountId});
                             }else{
-                              Alert.alert('错误提示','新增子账号失败,请重试!',[{text: '确定'}]);
+                              Alert.alert('错误提示','新增子账号绑定关系失败,请重试!',[{text: '确定'}]);
                             }
                           }
                         );
@@ -334,6 +331,8 @@ export default class superAccountIndex extends Component {
                             Alert.alert('提示','修改权限失败,请重试!',[{text: '确定'}]);
                           }
                         });
+                      }else{
+                        this.setState({isProjectShow: false});
                       }
                     }}
                   />
@@ -500,7 +499,7 @@ export default class superAccountIndex extends Component {
                   height: 40,
                   borderRadius: 10
                 }}
-                source={require('./img/upGrade.png')}
+                source={require('../img/upGrade.png')}
               />
             </TouchableOpacity>
           </View>
@@ -531,7 +530,7 @@ export default class superAccountIndex extends Component {
                   height: 40,
                   borderRadius: 10
                 }}
-                source={require('./img/edit.jpg')}
+                source={require('../img/edit.jpg')}
               />
             </TouchableOpacity>
           </View>
@@ -605,7 +604,7 @@ export default class superAccountIndex extends Component {
                   height: 40,
                   borderRadius: 10
                 }}
-                source={require('./img/3.png')}
+                source={require('../img/3.png')}
               />
             </TouchableOpacity>
           </View>

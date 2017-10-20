@@ -14,7 +14,7 @@ export default class CheckBox extends Component{
         text: '选项1',
         textAtBehind: true,
         checked: false,
-        func: ()=>{console.log('默认方法');}
+        onClickFunc: ()=>{console.log('默认方法');}
     }
 
      //属性类型：
@@ -23,7 +23,7 @@ export default class CheckBox extends Component{
         textStyle: PropTypes.object,
         textAtBehind: PropTypes.bool,
         checked: PropTypes.bool,
-        func: PropTypes.func
+        onClickFunc: PropTypes.func
      };
      
     render(){
@@ -62,7 +62,7 @@ export default class CheckBox extends Component{
         return(
             <TouchableHighlight
                 onPress = {()=>{
-                    this.props.func();
+                    this.props.onClickFunc();
                 }}
                 underlayColor='white'
             >
