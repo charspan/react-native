@@ -44,7 +44,7 @@ public class MainApplication extends Application implements ReactApplication {
     // 设置服务器 ip & port
     SharedPreferences mPreferences =  PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
     //String ipPort="120.26.8.206:8081";
-    String ipPort="192.168.1.234:8081";
+    String ipPort="192.168.1.141:8081";
     mPreferences.edit().putString("debug_http_host",ipPort).commit();
   }
 }
