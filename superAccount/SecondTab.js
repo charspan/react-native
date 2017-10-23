@@ -8,9 +8,15 @@ export default class SecondTab extends Component{
         super(props);
         this.state={
             gatewayInfo: props.gateway,
-            showMore: false,
+            showMore:props.ok?props.ok: false,
             showOrHide: '更多...'
         }
+    }
+
+    change(){
+        this.setState({
+            showMore: true
+        });
     }
 
     render(){

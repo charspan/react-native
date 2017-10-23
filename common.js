@@ -1,17 +1,15 @@
 import React, {Component} from 'React';
 import forge from 'node-forge';
 
-export default class common extends Component{
-
-}
-
+// 请求基地址
 export const base_url="http://www.rudolphsmart.com:8080/v2/";
 
+// 获取1~999随机正整数
 export function getRandomNum(){
 	return Math.ceil(Math.random()*999);
 }
 
-//导出方法
+// 翻转字符串，如“abc”翻转位“cba”
 function reverseString(str){
     return str.split('').reverse().join('');
 }
@@ -20,22 +18,16 @@ function reverseString(str){
 export function md5(str){
     var md = forge.md.md5.create();
     md.update(str);
-    var pwdMD5 = md.digest().toHex();
-    return pwdMD5;
+    return md.digest().toHex();
 }
 
-// 加密操作
+// 自定义加密操作
 export function jiami(str){
     str=md5(str);
-    var a = str.substring(0, 8);//1
-    var b = str.substring(8, 16);//2
-    b = reverseString(b);
-    var c = str.substring(16, 24);//3
-    var d = str.substring(24, 32);//4
-    d = reverseString(d);
-    return b + a + d + c;
+    return reverseString(str.substring(8, 16)) + str.substring(0, 8) + reverseString(str.substring(24, 32)) + str.substring(16, 24);
 }
 
+// http post方法 发生接送数据
 export function httpPostJson(url, data, header,callback) {
     fetch(url, {
         method: 'POST',
@@ -54,6 +46,7 @@ export function httpPostJson(url, data, header,callback) {
     }).done();
 }
 
+// http delete方法
 export function httpDelete(url, header,callback) {
     fetch(url, {
         method: 'DELETE',
@@ -71,6 +64,7 @@ export function httpDelete(url, header,callback) {
     }).done();
 }
 
+// http put方法
 export function httpPut(url, data,header,callback) {
     fetch(url, {
         method: 'PUT',
@@ -89,6 +83,7 @@ export function httpPut(url, data,header,callback) {
     }).done();
 }
 
+// http get方法
 export function httpGet(url,params,header,callback){
     if (params) {
         let paramsArray = [];
@@ -113,6 +108,6 @@ export function httpGet(url,params,header,callback){
     })
     .then((response) => response.json())
     .then((response) => {
-        callback(response)
+        callback(response);
     }).done();
 }

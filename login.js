@@ -12,7 +12,8 @@ import {
 import {base_url,getRandomNum,jiami,httpPostJson,httpGet} from './common';
 import CheckBox from './my_component/CheckBox.js';
 import SuperAccountIndex from './superAccount/superAccountIndex';
-  
+
+// 登录界面
 export default class login extends Component {
 
     constructor(props){
@@ -20,10 +21,10 @@ export default class login extends Component {
         this.state=({
             account: '0579-QQ-12-3-204', // 登录账号,设置默认账号测试用
             password: '123456', // 登录密码,设置默认密码测试用
-            accountType: 1,// 登录账号类型, 1 代表超级账号 0 代表子账号,默认为 1
-            navigator: props.navigator, // 导航对象
+            accountType: 1, // 登录账号类型, 1 代表超级账号 0 代表子账号,默认为 1
         });
     };
+
     render() {
         return (
             <View style={{backgroundColor:'#ffffff',flex:1,paddingTop: 150}}>
@@ -88,69 +89,60 @@ export default class login extends Component {
                     style={styles.style_view_commit}
                     activeOpacity={0.5}
                     underlayColor='#63BFFF'
-                    // onHideUnderlay={()=>{
-                    //     this.setState({text:'衬底被隐藏'})
-                    // }}
-                    // onShowUnderlay={()=>{
-                    //     this.setState({text:'衬底显示'})
-                    // }}
                     onPress={()=>{
                         // 获取系统时间戳
-                        httpGet(base_url+'timestamp/'+this.state.accountType+'/'+this.state.account,{randomCode : getRandomNum()},{},
-                            (res0)=>{
-                                if(res0.errorcode!=0){
-                                    Alert.alert('提示','您的账号不存在,请重试!',[{text: '确定'}]);
-                                    return;
-                                }else{
-                                    // 获取 token
-                                    httpPostJson(base_url+'tokens/'+ this.state.accountType+'/'+this.state.account,
-                                        {randomStr:res0.data.randomStr,timestamp:res0.data.timestamp,password:jiami(this.state.password)},
-                                        {},
-                                        (res1)=>{
-                                            if(res1.errorcode!=0){
-                                                Alert.alert('提示','您的密码有误,请重试!',[{text: '确定'}]);
+                        httpGet(base_url+'timestamp/'+this.state.accountType+'/'+this.state.account,{randomCode:getRandomNum()},{},
+                        (res0)=>{
+                            if(res0.errorcode!=0){
+                                Alert.alert('提示','您的账号不存在,请重试!',[{text: '确定'}]);
+                                return;
+                            }else{
+                                // 获取 token
+                                httpPostJson(base_url+'tokens/'+ this.state.accountType+'/'+this.state.account,
+                                {randomStr:res0.data.randomStr,timestamp:res0.data.timestamp,password:jiami(this.state.password)},{},
+                                (res1)=>{
+                                    if(res1.errorcode!=0){
+                                        Alert.alert('提示','您的密码有误,请重试!',[{text: '确定'}]);
+                                        return;
+                                    }else{
+                                        var header={type:this.state.accountType,account:this.state.account,token:res1.data.token};
+                                        // 获取个人信息
+                                        httpGet(base_url+'client/info',{},header,
+                                        (res2)=>{
+                                            if(res2.errorcode!=0){
+                                                Alert.alert('提示','验证信息失败,请重试!',[{text: '确定'}]);
                                                 return;
                                             }else{
-                                                var header={type:this.state.accountType,account:this.state.account,token:res1.data.token};
-                                                // 获取个人信息
-                                                httpGet(base_url+'client/info',{},header,
-                                                    (res2)=>{
-                                                        if(res2.errorcode!=0){
-                                                            Alert.alert('提示','验证信息失败,请重试!',[{text: '确定'}]);
-                                                            return;
-                                                        }else{
-                                                            if(this.state.accountType==0){// 子账号
-                                                                Alert.alert(
-                                                                    '子账号页面暂未开放!',
-                                                                    '您获得的信息是:'+JSON.stringify(res2.data),
-                                                                    [{text: '确定'}]
-                                                                );
-                                                            }else{// 超级账号
-                                                                // 采用替换当前场景
-                                                                this.state.navigator.replace({
-                                                                    name: 'SuperAccountIndex',
-                                                                    component: SuperAccountIndex,
-                                                                    params:{
-                                                                        message: res2.data,
-                                                                        navigator: this.state.navigator,
-                                                                        header: header
-                                                                    }
-                                                                });
-                                                            }
+                                                if(this.state.accountType==0){// 子账号
+                                                    Alert.alert(
+                                                        '子账号页面暂未开放!',
+                                                        '您获得的信息是:'+JSON.stringify(res2.data),
+                                                        [{text: '确定'}]
+                                                    );
+                                                }else{// 超级账号
+                                                    // 采用替换当前场景
+                                                    this.props.navigator.replace({
+                                                        name: 'SuperAccountIndex',
+                                                        component: SuperAccountIndex,
+                                                        params: {
+                                                            message: res2.data,
+                                                            navigator: this.props.navigator,
+                                                            header: header
                                                         }
-                                                    }
-                                                );
+                                                    });
+                                                }
                                             }
-                                        }
-                                    );
-                                }
+                                        });
+                                    }
+                                });
                             }
-                        );
+                        });
                     }}
                 >
                     <View><Text style={{color:'#fff'}}>登录</Text></View>
                 </TouchableHighlight>
-                <View style={{flex:1,flexDirection:'row',alignItems: 'flex-end',bottom:10}}>
+                {/*底部内容（暂时无用））*/}
+                <View style={{flex:1,flexDirection:'row',alignItems:'flex-end',bottom:10}}>
                     <Text style={styles.style_view_unlogin}>无法登录?</Text>  
                     <Text style={styles.style_view_register}>新用户</Text>  
                 </View>  
@@ -159,7 +151,7 @@ export default class login extends Component {
     }  
 }  
   
-const styles =StyleSheet.create({
+const styles = StyleSheet.create({
     style_image:{
         borderRadius:35,
         height:100,

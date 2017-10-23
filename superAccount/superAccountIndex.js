@@ -24,16 +24,14 @@ import ThirdTab from './ThirdTab';
 import FourthTab from './FourthTab';
 import "../GlobalValue";
 import RoomList from './RoomList';
-//import _ from 'lodash';
 
+// 超级账号首页
 export default class superAccountIndex extends Component {
 
-  static navigator;
   constructor(props){
     super(props);
     this.state = {
       message: props.message, // 超级账号登录后获取的 data 信息
-      header: props.header, // http 请求头部信息
       isSubAccountDetailShow: false, // 是否显示当前子账号详细信息
       isProjectShow: false, // 是否显示子账号权限编辑界面--工程列表
       subAccountDetail: {}, // 子账号详细信息
@@ -62,22 +60,36 @@ export default class superAccountIndex extends Component {
       currProjectId: -1, //当前正要编辑工程内部房间权限的工程编号
       rightId: -1 ,//当前权限编号
     };
-    superAccountIndex.navigator=props.navigator;
-    //console.log(props.message);
-    httpGet(base_url+"subAccountRights",{superAccountId:this.state.message.superAccount.id},this.state.header,(res)=>{
-     // console.log(res.data.rights);
+    // 获取所有子账号权限信息
+    httpGet(base_url+"subAccountRights",{superAccountId:this.state.message.superAccount.id},this.props.header,
+    (res)=>{
       if(res.errorcode==0){
+        // 遍历登录获取的子账号绑定关系列表 
+        //item1 :
+        //{
+        // "id": 6, // 绑定关系编号
+        // "subAccountId":2,
+        // "account": "subAccount021",
+        // "subRelatedName": " 昵称022",
+        // "createTime": "2017-04-27 17:36:51.0"
+        //}
         for(var i=0;i<props.message.bindings.length;i++){
-          var subAccountId=props.message.bindings[i].subAccountId;
-          //console.log(subAccountId);
+          // 遍历所有子账号权限信息
+          // item2 :
+          //{
+          // "id":1, // 权限信息编号
+          // "subAccountId":1,
+          // "rightJson":""
+          //}
           for(var j=0;j<res.data.rights.length;j++){
-            if(subAccountId==res.data.rights[j].subAccountId){
-              // console.log(subAccountId,res.data.rights[j]);
+            // 在每一个item1中插入item2的内容
+            if(props.message.bindings[i].subAccountId==res.data.rights[j].subAccountId){
               // 追加权限信息编号
               this.state.message.bindings[i].rightId=res.data.rights[j].id;
               // 追加权限信息
               this.state.message.bindings[i].rightJson=res.data.rights[j].rightJson;
-              //console.log(subAccountId,props.message.bindings[i]);
+              // 将当前已经处理过的子账号移除
+              res.data.rights.splice(j,1);
               break;
             }
           }
@@ -88,11 +100,36 @@ export default class superAccountIndex extends Component {
 
   render() {
     return (
+      /* 带有选项卡的界面，切换底部或者头部选项即可切换界面显示内容， 类似微信6.X */
       <ScrollableTabView
         style={{marginTop: 20, backgroundColor:'rgba(255,255,255,1)'}}
-        initialPage={0}
+        /* 初始化时被选中的Tab下标，默认是0（即第一页）。
+          initialPage={0}
+        */
+        // TabBar的样式，系统提供了两种默认的，分别是DefaultTabBar(Tab会平分在水平方向的空间)和ScrollableTabBar(Tab可以超过屏幕范围，滚动可以显示。)。这里我用了自定义的TabBar
         renderTabBar={() => <TabBar tabNames={['子账号','网关','个人','设置']} tabIcons={['ios-people','ios-paper','ios-body','ios-apps']}/>}
+        /*
+          top：位于屏幕顶部 
+          bottom：位于屏幕底部 
+          overlayTop：位于屏幕顶部，悬浮在内容视图之上（看颜色区分：视图有颜色，Tab栏没有颜色） 
+          overlayBottom：位于屏幕底部，悬浮在内容视图之上（看颜色区分：视图有颜色，Tab栏没有颜色）
+        */
         tabBarPosition='bottom'
+        /*
+          Tab切换之后会触发此方法，包含一个参数（Object类型），这个对象有两个参数: 
+          i：被选中的Tab的下标（从0开始） 
+          ref：被选中的Tab对象（基本用不到）（想用也很难用。。。）
+          from ： 前一个被选中的Tab的下标
+          onChangeTab={(obj) => {}}
+        */
+        /*
+          视图正在滑动的时候触发此方法，包含一个Float类型的数字，范围是[0, tab的数量-1]
+          onScroll={(postion) => {}}
+        */
+        /*
+          表示手指是否能拖动视图，默认为false（表示可以拖动）。设为true的话，我们只能“点击”Tab来切换视图。
+          locked={false}
+        */
       >
         <View tabLabel="ios-people" style={styles.firstTab}>
           <View style={styles.card}>
@@ -144,7 +181,7 @@ export default class superAccountIndex extends Component {
                         // 进行网络请求
                         httpPostJson(base_url+'relative',
                           {account: this.state.newSubAccount_account,subRelatedName: this.state.newSubAccount_relativeName},
-                          this.state.header,
+                          this.props.header,
                           (res)=>{
                             if(res.errorcode==0){
                               this.setState({isSubAccountAddShow: false});
@@ -180,7 +217,7 @@ export default class superAccountIndex extends Component {
                     func={()=>{
                       httpPut(base_url+'relative/'+this.state.rowDataEdit.id,
                         {subRelatedName: this.editSubAccount_relativeName.getValue()},
-                        this.state.header,
+                        this.props.header,
                         (res)=>{
                           if(res.errorcode==0){
                             this.firstTabRef.editValue(this.state.rowIDEdit,this.state.rowDataEdit,this.editSubAccount_relativeName.getValue());
@@ -238,7 +275,7 @@ export default class superAccountIndex extends Component {
                 <FirstTabRight
                   subAccounts={this.state.message.bindings} 
                   // 传递 http 请求头
-                  header={this.state.header}
+                  header={this.props.header}
                   // 传递超级账号编号
                   superAccountId={this.state.message.superAccount.id}
                   // 工程列表
@@ -289,7 +326,7 @@ export default class superAccountIndex extends Component {
                       syncParams: {// 当找不到缓存数据的时候自动调用方法的参数
                           superAccountId: this.state.message.superAccount.id,
                           projectId: projectId,
-                          header: this.state.header
+                          header: this.props.header
                       },
                     }).then(rooms => {
                       // 如果找到数据，则在then方法中返回
@@ -322,7 +359,7 @@ export default class superAccountIndex extends Component {
                       // 在这里提交修改子账号权限信息的网络请求
                       console.log("superAccountIndex.js 当前子账号权限修改结果",this.state.rights);
                       if(JSON.stringify(this.state.rights)!=this.state.rowDataEdit.rightJson){
-                        httpPut(base_url+"subAccountRights/"+this.state.rightId,{rightJson: JSON.stringify(this.state.rights)},this.state.header,(res)=>{
+                        httpPut(base_url+"subAccountRights/"+this.state.rightId,{rightJson: JSON.stringify(this.state.rights)},this.props.header,(res)=>{
                           if(res.errorcode==0){
                             this.firstTabRef.updateRights(this.state.rowIDEdit,this.state.rowDataEdit,JSON.stringify(this.state.rights));
                             this.setState({isProjectShow: false});
@@ -358,7 +395,7 @@ export default class superAccountIndex extends Component {
                 </View>
                 <RoomList
                   superAccountId={this.state.superAccountId}
-                  header={this.state.header}
+                  header={this.props.header}
                   rooms={this.state.rooms}
                   rights={this.state.rights}
                   projectId={this.state.currProjectId}
@@ -452,7 +489,7 @@ export default class superAccountIndex extends Component {
                 // 你还可以给sync方法传递额外的参数
                 syncParams: {// 当找不到缓存数据的时候自动调用方法的参数
                     superAccountId: this.state.message.superAccount.id,
-                    header: this.state.header
+                    header: this.props.header
                 },
               }).then(projects => {
                 // 如果找到数据，则在then方法中返回
@@ -477,7 +514,7 @@ export default class superAccountIndex extends Component {
               });
             }}
             // 传递 http 请求头
-            header={this.state.header}
+            header={this.props.header}
             // 设置 ref, 方便调用当前子组件(FirstTab)内部方法
             ref={firstTabRef=>this.firstTabRef=firstTabRef}
           />
@@ -558,7 +595,7 @@ export default class superAccountIndex extends Component {
                       // 进行网络请求
                       httpPut(base_url+'client/info',
                         {nickname: this.state.personalEdit_nickname,mobile: this.state.personalEdit_mobile},
-                        this.state.header,
+                        this.props.header,
                         (res)=>{
                           if(res.errorcode==0){
                             this.thirdTabRef.update(this.state.personalEdit_nickname,this.state.personalEdit_mobile);
@@ -609,9 +646,9 @@ export default class superAccountIndex extends Component {
             </TouchableOpacity>
           </View>
           <FourthTab
-            header={this.state.header}
+            header={this.props.header}
             password={this.state.message.superAccount.password}
-            navigator={superAccountIndex.navigator}
+            navigator={this.props.navigator}
           />
         </ScrollView>
       </ScrollableTabView>
