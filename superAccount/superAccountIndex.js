@@ -270,7 +270,7 @@ export default class superAccountIndex extends Component {
             <View style={{flex:1,justifyContent: 'center',backgroundColor:'rgba(0,0,0,0.8)'}}>
               <View style={{padding:20,height:400, backgroundColor:'rgba(255,255,255,1)'}}>
                 <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
-                  <Text style={{fontSize:24,marginBottom:10}}>工程列表</Text>
+                  <Text style={{fontSize:24,paddingBottom:10}}>工程列表</Text>
                 </View>
                 <FirstTabRight
                   subAccounts={this.state.message.bindings} 
@@ -567,7 +567,7 @@ export default class superAccountIndex extends Component {
                   height: 40,
                   borderRadius: 10
                 }}
-                source={require('../img/edit.jpg')}
+                source={require('../img/edit.png')}
               />
             </TouchableOpacity>
           </View>
@@ -641,7 +641,7 @@ export default class superAccountIndex extends Component {
                   height: 40,
                   borderRadius: 10
                 }}
-                source={require('../img/3.png')}
+                source={require('../img/setting.png')}
               />
             </TouchableOpacity>
           </View>

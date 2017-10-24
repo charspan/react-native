@@ -108,7 +108,7 @@ export default class FirstTab extends Component{
                   this.props.callbackShowSubAccountEdit(rowID,rowData);
                 }}
               >
-                <Image style={styles.thumb} source={require('../img/edit.jpg')} />
+                <Image style={styles.thumb} source={require('../img/edit.png')} />
               </TouchableOpacity>
               <TouchableOpacity // 点击删除子账号绑定关系
                 onPress={()=>{
