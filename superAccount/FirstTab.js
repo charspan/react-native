@@ -135,7 +135,7 @@ export default class FirstTab extends Component{
                   );
                 }}
               >
-                <Image style={styles.thumb} source={require('../img/trash.jpg')} />
+                <Image style={styles.thumb} source={require('../img/trash.png')} />
               </TouchableOpacity>
             </View>
             <View style={{height:2,backgroundColor:'white'}} />
