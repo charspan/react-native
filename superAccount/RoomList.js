@@ -72,7 +72,6 @@ export default class RoomList extends Component{
           <TouchableOpacity // 点击查看房间详情
             style={{flex:3}}
             onPress={()=>{
-              //console.log("第"+rowID+"行被点击了");
               Alert.alert('房间详情',JSON.stringify(rowData),[{text: '确定'}]);
             }}
           >
@@ -96,9 +95,6 @@ export default class RoomList extends Component{
         showsVerticalScrollIndicator={false}
         initialListSize={4}
         pageSize={1}
-        onEndReached={()=>{
-          console.log("room onEndReached");
-        }}
       />
     );
   }

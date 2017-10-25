@@ -76,7 +76,7 @@ export default class FourthTab extends Component{
                         global.clearStorage();
                         if(this.state.isDeveloper){
                             // 删除单个数据
-                            global.storage.remove({key: 'defaultExpires'});
+                            global.storage.remove({key: 'defaultExpires',id: this.props.superAccountId});
                             // 缓存时间设置为一天
                             global.storage.defaultExpires=86400000;
                         }else{
@@ -84,6 +84,7 @@ export default class FourthTab extends Component{
                             // 除非你手动移除，这些数据会被永久保存，而且默认不会过期。
                             global.storage.save({
                                 key: 'defaultExpires',
+                                id: this.props.superAccountId,
                                 data: 1000,
                                 // 如果不指定过期时间，则会使用defaultExpires参数，设为null，则永不过期
                                 expires: null
@@ -116,9 +117,7 @@ export default class FourthTab extends Component{
                                 {text: '取消'},
                                 {text: '确定', 
                                     onPress: () => {
-                                        global.clearStorage();
-                                        // 删除单个数据，退出下一个用户默认未开启开发者模式
-                                        global.storage.remove({key: 'defaultExpires'});
+                                        //global.clearStorage();
                                         this.props.navigator.replace({
                                             name: 'Login',
                                             component: Login

@@ -60,6 +60,21 @@ export default class superAccountIndex extends Component {
       currProjectId: -1, //当前正要编辑工程内部房间权限的工程编号
       rightId: -1 ,//当前权限编号
     };
+    // 根据不同用户设置不同缓存时间（是否是开发模式）
+    global.storage.load({
+      key: 'defaultExpires',
+      id: this.state.message.superAccount.id,
+      // autoSync(默认为true)意味着在没有找到数据或数据过期时自动调用相应的sync方法
+      autoSync: false,
+    }).then(defaultExpires => {
+      // 如果找到数据，则在then方法中返回
+      // 注意：这是异步返回的结果（不了解异步请自行搜索学习）
+      // 只能在then这个方法内继续处理ret数据而不能在then以外处理,也没有办法“变成”同步返回
+      // 也可以使用“看似”同步的async/await语法
+      global.storage.defaultExpires=defaultExpires;
+    }).catch(err => {
+      global.storage.defaultExpires=86400000;
+    });
     // 获取所有子账号权限信息
     httpGet(base_url+"subAccountRights",{superAccountId:this.state.message.superAccount.id},this.props.header,
     (res)=>{
@@ -265,7 +280,7 @@ export default class superAccountIndex extends Component {
                   projects={this.state.projects}
                   // 传递权限信息
                   rights={this.state.rights}
-                  callbackShowRooms={(projectId/*,rights*/)=>{
+                  callbackShowRooms={(projectId)=>{
                     // 现将修改的工程编号和权限信息保存
                     this.setState({
                       currProjectId: projectId,
@@ -276,10 +291,11 @@ export default class superAccountIndex extends Component {
                       storageRooms(params){
                         httpPostJson(base_url+"UIDesigner/"+params.syncParams.superAccountId+"/"+params.syncParams.projectId+"/rooms",{},params.syncParams.header,
                         (res)=>{
+                          console.log("rooms");
                           if(res.errorcode==0){
                             global.storage.save({
                               key: 'storageRooms',  // 注意:请不要在key中使用_下划线符号!
-                              id: params.id,
+                              id: params.syncParams.projectId, // 工程编号
                               data: res.data.roomList,
                               // 如果不指定过期时间，则会使用defaultExpires参数
                               // 如果设为null，则永不过期
@@ -430,9 +446,11 @@ export default class superAccountIndex extends Component {
                 storageProjects(params){
                   httpPostJson(base_url+"UIDesigner/"+params.syncParams.superAccountId+"/projects",{},params.syncParams.header,
                     (res)=>{
+                      console.log("projecs");
                       if(res.errorcode==0){
                         global.storage.save({
                           key: 'storageProjects',  // 注意:请不要在key中使用_下划线符号!
+                          id: params.syncParams.superAccountId,// 用户编号
                           data: res.data.projectList,
                           // 如果不指定过期时间，则会使用defaultExpires参数
                           // 如果设为null，则永不过期
@@ -451,6 +469,7 @@ export default class superAccountIndex extends Component {
               // 先从缓存中读取工程列表,如果没有则进行网络请求
               global.storage.load({
                 key: 'storageProjects',
+                id: this.state.message.superAccount.id,
                 // autoSync(默认为true)意味着在没有找到数据或数据过期时自动调用相应的sync方法
                 autoSync: true,
                 // syncInBackground(默认为true)意味着如果数据过期，
@@ -593,6 +612,7 @@ export default class superAccountIndex extends Component {
             </TouchableOpacity>
           </View>
           <FourthTab
+            superAccountId={this.state.message.superAccount.id}
             header={this.props.header}
             password={this.state.message.superAccount.password}
             navigator={this.props.navigator}
