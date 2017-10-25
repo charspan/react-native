@@ -109,8 +109,7 @@ var styles =StyleSheet.create({
     alignItems: 'center'
   },
   thumb: {
-    width: 50,
-    height: 50,
-    borderRadius: 10
+    width: 40,
+    height: 40
   },
 });
