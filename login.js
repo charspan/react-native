@@ -68,6 +68,7 @@ export default class login extends Component {
                         textAtBehind={true}
                         onClickFunc={()=>{
                             this.setState({
+                                account: '0579-QQ-12-3-204', // 测试用
                                 accountType: 1
                             });
                         }}
@@ -79,6 +80,7 @@ export default class login extends Component {
                         textAtBehind={true}
                         onClickFunc={()=>{
                             this.setState({
+                                account: "15757101403",// 测试用
                                 accountType: 0
                             });
                         }}
