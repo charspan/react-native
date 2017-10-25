@@ -649,7 +649,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   img: {
-    width: 40,
-    height: 40
+    width: 35,
+    height: 35
   }
 });
