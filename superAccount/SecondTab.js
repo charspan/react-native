@@ -25,8 +25,8 @@ export default class SecondTab extends Component{
             <Text style={{alignSelf:'flex-start',fontSize:18}}>创建时间:  {moment(this.state.gatewayInfo.createTime).format("YYYY-MM-DD HH:mm:ss")+"\n"}</Text>
             <Text style={{alignSelf:'flex-start',fontSize:18}}>出厂昵称:  {this.state.gatewayInfo.defaultName+"\n"}</Text>
             <Text style={{alignSelf:'flex-start',fontSize:18}}>昵称:  {this.state.gatewayInfo.nickname+"\n"}</Text>
-            <Text style={{alignSelf:'flex-start',fontSize:18}}>token:  {this.state.gatewayInfo.token==null?"":this.state.gatewayInfo.token+"\n"}</Text>
-            <Text style={{alignSelf:'flex-start',fontSize:18}}>token 过期时间:  {this.state.gatewayInfo.expiresTime==null?"":moment(this.state.gatewayInfo.expiresTime).format("YYYY-MM-DD HH:mm:ss")+"\n"}</Text>
+            <Text style={{alignSelf:'flex-start',fontSize:18}}>token:  {this.state.gatewayInfo.token==null?"从未登录\n":this.state.gatewayInfo.token+"\n"}</Text>
+            <Text style={{alignSelf:'flex-start',fontSize:18}}>token 过期时间:  {this.state.gatewayInfo.expiresTime==null?"从未登录\n":moment(this.state.gatewayInfo.expiresTime).format("YYYY-MM-DD HH:mm:ss")+"\n"}</Text>
         </View> : null;
         return (
             <View style={{flexDirection:'row', flex:1,backgroundColor:'rgba(0,0,0,0.8)'}}>
@@ -34,9 +34,9 @@ export default class SecondTab extends Component{
                     <Text style={{alignSelf:'center',fontSize:20,fontWeight:'bold'}}>网关详细信息{"\n"}</Text>
                     <Text style={{alignSelf:'flex-start',fontSize:18}}>编号:  {this.state.gatewayInfo.id+"\n"}</Text>
                     <Text style={{alignSelf:'flex-start',fontSize:18}}>序列号:  {this.state.gatewayInfo.serialNumber+"\n"}</Text>
-                    <Text style={{alignSelf:'flex-start',fontSize:18}}>版本更新时间:  {moment(this.state.gatewayInfo.lastHttpOnlineTime).format("YYYY-MM-DD HH:mm:ss")+"\n"}</Text>
-                    <Text style={{alignSelf:'flex-start',fontSize:18}}>udp 连接时间:  {moment(this.state.gatewayInfo.lastUdpOnlineTime).format("YYYY-MM-DD HH:mm:ss")+"\n"}</Text>
-                    <Text style={{alignSelf:'flex-start',fontSize:18}}>tcp 连接时间:  {moment(this.state.gatewayInfo.lastTcpOnlineTime).format("YYYY-MM-DD HH:mm:ss")+"\n"}</Text>
+                    <Text style={{alignSelf:'flex-start',fontSize:18}}>版本更新时间:  {this.state.gatewayInfo.lastHttpOnlineTime==null?"从未登录\n":moment(this.state.gatewayInfo.lastHttpOnlineTime).format("YYYY-MM-DD HH:mm:ss")+"\n"}</Text>
+                    <Text style={{alignSelf:'flex-start',fontSize:18}}>udp 连接时间:  {this.state.gatewayInfo.lastUdpOnlineTime==null?"从未登录\n":moment(this.state.gatewayInfo.lastUdpOnlineTime).format("YYYY-MM-DD HH:mm:ss")+"\n"}</Text>
+                    <Text style={{alignSelf:'flex-start',fontSize:18}}>tcp 连接时间:  {this.state.gatewayInfo.lastTcpOnlineTime==null?"从未登录\n":moment(this.state.gatewayInfo.lastTcpOnlineTime).format("YYYY-MM-DD HH:mm:ss")+"\n"}</Text>
                     <Text style={{alignSelf:'flex-start',fontSize:18}}>状态:  {this.state.gatewayInfo.usable==0?'可用\t\t':'不可用\t\t'}版本:  {this.state.gatewayInfo.version+"\n"}</Text>
                     <Text style={{padding: 3,backgroundColor:'rgba(0,0,255,0.5)',alignSelf: 'flex-end',fontSize:16}} onPress={()=>{
                         this.setState({

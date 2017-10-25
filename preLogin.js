@@ -47,7 +47,6 @@ export default class preLogin extends Component {
     if (route.type == 'Bottom') {
       return Navigator.SceneConfigs.FloatFromBottom; // 底部弹出
     }else if(route.type=='VerticalDownSwipeJump'){
-      
       return Navigator.SceneConfigs.VerticalDownSwipeJump;
     }
     return Navigator.SceneConfigs.PushFromRight; // 右侧弹出

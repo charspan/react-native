@@ -16,7 +16,7 @@ import TabBar from '../my_component/TabBar';
 import TextInputBar from '../my_component/TextInputBar';
 import ButtonItem from '../my_component/ButtonItem';
 import FirstTab from './FirstTab';
-import FirstTabRight from './FirstTabRight';
+import ProjectList from './ProjectList';
 import {base_url,httpPostJson,httpPut,httpGet} from '../common';
 import moment from 'moment';
 import SecondTab from './SecondTab';
@@ -142,20 +142,13 @@ export default class superAccountIndex extends Component {
               }}
             >
               <Image 
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10
-                }}
+                style={styles.img}
                 source={require('../img/plus.png')}
               />
             </TouchableOpacity>
           </View>
           <Modal // 新增子账号绑定关系模态窗口
             visible={this.state.isSubAccountAddShow}
-            //从下面向上滑动 slide
-            //慢慢显示 fade
-            //animationType = {global.animationType}
             //是否透明默认是不透明 false
             transparent = {true}
             //关闭时调用
@@ -174,14 +167,12 @@ export default class superAccountIndex extends Component {
                       this.state.newSubAccount_relativeName=this.newSubAccount_relativeName.getValue();
                       // 验证子账号格式是否正确
                       // ...暂时不做任何验证...
-                      // 验证子账号是否存在
+                      // 本地验证子账号是否存在
                       if(this.firstTabRef.hasSameValue(this.state.newSubAccount_account)){
                         Alert.alert('错误提示','该子账号的绑定关系已经存在!',[{text: '确定'}]);
                       } else {
                         // 进行网络请求
-                        httpPostJson(base_url+'relative',
-                          {account: this.state.newSubAccount_account,subRelatedName: this.state.newSubAccount_relativeName},
-                          this.props.header,
+                        httpPostJson(base_url+'relative',{account: this.state.newSubAccount_account,subRelatedName: this.state.newSubAccount_relativeName},this.props.header,
                           (res)=>{
                             if(res.errorcode==0){
                               this.setState({isSubAccountAddShow: false});
@@ -200,9 +191,6 @@ export default class superAccountIndex extends Component {
           </Modal>
           <Modal // 修改子账号绑定关系模态窗口
             visible={this.state.isSubAccountEditShow}
-            //从下面向上滑动 slide
-            //慢慢显示 fade
-            //animationType = {global.animationType}
             //是否透明默认是不透明 false
             transparent = {true}
             //关闭时调用
@@ -215,9 +203,7 @@ export default class superAccountIndex extends Component {
                   <ButtonItem label="取 消" func={()=> this.setState({isSubAccountEditShow: false})}/>
                   <ButtonItem label="提 交" 
                     func={()=>{
-                      httpPut(base_url+'relative/'+this.state.rowDataEdit.id,
-                        {subRelatedName: this.editSubAccount_relativeName.getValue()},
-                        this.props.header,
+                      httpPut(base_url+'relative/'+this.state.rowDataEdit.id,{subRelatedName: this.editSubAccount_relativeName.getValue()},this.props.header,
                         (res)=>{
                           if(res.errorcode==0){
                             this.firstTabRef.editValue(this.state.rowIDEdit,this.state.rowDataEdit,this.editSubAccount_relativeName.getValue());
@@ -235,9 +221,6 @@ export default class superAccountIndex extends Component {
           </Modal>
           <Modal //子账号绑定关系详情模态窗口
             visible={this.state.isSubAccountDetailShow}
-            //从下面向上滑动 slide
-            //慢慢显示 fade
-            //animationType = {global.animationType}
             //是否透明默认是不透明 false
             transparent = {true}
             //关闭时调用
@@ -261,7 +244,7 @@ export default class superAccountIndex extends Component {
             visible={this.state.isProjectShow}
             //从下面向上滑动 slide
             //慢慢显示 fade
-            animationType = {global.animationType}
+            animationType = "fade"
             //是否透明默认是不透明 false
             transparent = {true}
             //关闭时调用
@@ -272,7 +255,7 @@ export default class superAccountIndex extends Component {
                 <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
                   <Text style={{fontSize:24,paddingBottom:10}}>工程列表</Text>
                 </View>
-                <FirstTabRight
+                <ProjectList
                   subAccounts={this.state.message.bindings} 
                   // 传递 http 请求头
                   header={this.props.header}
@@ -293,7 +276,6 @@ export default class superAccountIndex extends Component {
                       storageRooms(params){
                         httpPostJson(base_url+"UIDesigner/"+params.syncParams.superAccountId+"/"+params.syncParams.projectId+"/rooms",{},params.syncParams.header,
                         (res)=>{
-                          console.log("网络请求房间列表",res);
                           if(res.errorcode==0){
                             global.storage.save({
                               key: 'storageRooms',  // 注意:请不要在key中使用_下划线符号!
@@ -301,7 +283,7 @@ export default class superAccountIndex extends Component {
                               data: res.data.roomList,
                               // 如果不指定过期时间，则会使用defaultExpires参数
                               // 如果设为null，则永不过期
-                              expires: 5000//1000 * 3600 * 0.25  // 15分钟 用户可设置
+                              // expires: 1000 * 3600 * 0.25  // 15分钟 用户可设置
                             });
                             // 成功则调用resolve
                             params.resolve && params.resolve(res.data.roomList);
@@ -338,7 +320,6 @@ export default class superAccountIndex extends Component {
                         isProjectShow: false,
                         isRoomsShow: true
                       });
-                      // console.log(this.state.isRoomsShow,rooms);
                     }).catch(err => {
                       //如果没有找到数据且没有sync方法,或者有其他异常，则在catch中返回
                       switch (err.name) {
@@ -357,14 +338,13 @@ export default class superAccountIndex extends Component {
                   <ButtonItem label="提 交" 
                     func={()=>{
                       // 在这里提交修改子账号权限信息的网络请求
-                      console.log("superAccountIndex.js 当前子账号权限修改结果",this.state.rights);
                       if(JSON.stringify(this.state.rights)!=this.state.rowDataEdit.rightJson){
-                        httpPut(base_url+"subAccountRights/"+this.state.rightId,{rightJson: JSON.stringify(this.state.rights)},this.props.header,(res)=>{
+                        httpPut(base_url+"subAccountRights/"+this.state.rightId,{rightJson: JSON.stringify(this.state.rights)},this.props.header,
+                        (res)=>{
                           if(res.errorcode==0){
                             this.firstTabRef.updateRights(this.state.rowIDEdit,this.state.rowDataEdit,JSON.stringify(this.state.rights));
                             this.setState({isProjectShow: false});
                           }else{
-                            console.log(res);
                             Alert.alert('提示','修改权限失败,请重试!',[{text: '确定'}]);
                           }
                         });
@@ -382,7 +362,7 @@ export default class superAccountIndex extends Component {
             visible={this.state.isRoomsShow}
             //从下面向上滑动 slide
             //慢慢显示 fade
-            animationType = {global.animationType}
+            animationType = "fade"
             //是否透明默认是不透明 false
             transparent = {true}
             //关闭时调用
@@ -407,8 +387,6 @@ export default class superAccountIndex extends Component {
                         isRoomsShow: false,
                         isProjectShow: true
                       });
-                      // 按照对象存储的特点,这里的权限就是最新的权限信息
-                      //console.log(this.state.rights);
                     }}
                   />
                 </View>
@@ -436,9 +414,6 @@ export default class superAccountIndex extends Component {
             }}
             // 传递显示编辑子账号权限信息界面回调方法
             callbackShowProjects={(rowID,rowData)=>{
-              //console.log(rowID,rowData);
-              //console.log(rowData.rightJson);
-              //console.log(JSON.parse(rowData.rightJson));
               if(rowData.rightJson.indexOf('jurisdictionList')==-1){
                 this.setState({
                   rowIDEdit: rowID,
@@ -453,19 +428,15 @@ export default class superAccountIndex extends Component {
               // 设置及时同步数据函--获取工程列表
               global.storage.sync = {
                 storageProjects(params){
-                  httpPostJson(
-                    base_url+"UIDesigner/"+params.syncParams.superAccountId+"/projects",
-                    {},
-                    params.syncParams.header,
+                  httpPostJson(base_url+"UIDesigner/"+params.syncParams.superAccountId+"/projects",{},params.syncParams.header,
                     (res)=>{
-                      console.log("网络请求工程列表",res);
                       if(res.errorcode==0){
                         global.storage.save({
                           key: 'storageProjects',  // 注意:请不要在key中使用_下划线符号!
                           data: res.data.projectList,
                           // 如果不指定过期时间，则会使用defaultExpires参数
                           // 如果设为null，则永不过期
-                          expires: 5000//1000 * 3600 * 0.25  // 15分钟 用户可设置
+                          // expires: 1000 * 3600 * 0.25  // 15分钟 用户可设置
                         });
                         // 成功则调用resolve
                         params.resolve && params.resolve(res.data.projectList);
@@ -496,7 +467,6 @@ export default class superAccountIndex extends Component {
                 // 注意：这是异步返回的结果（不了解异步请自行搜索学习）
                 // 你只能在then这个方法内继续处理projects数据,而不能在then以外处理,也没有办法“变成”同步返回
                 // 你也可以使用“看似”同步的async/await语法
-                //console.log("projects",projects);
                 this.setState({
                   projects: projects,
                   isProjectShow: true
@@ -526,26 +496,18 @@ export default class superAccountIndex extends Component {
             <Text style={{fontSize:30}}>网关管理</Text>
             <TouchableOpacity // 点击显示新增子账号绑定关系模态窗口
               onPress={()=>{
-                //console.log('网关信息',this.state.message.superAccount.gateway);
-                Alert.alert('提示','当前网关已是最新版本,无需升级!',[{text: '确定'}]);
+                Alert.alert('提示','当前网关已是最新版本,无需升级!网关信息'+this.state.message.superAccount.gateway,[{text: '确定'}]);
               }}
             >
               <Image 
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10
-                }}
+                style={styles.img}
                 source={require('../img/upGrade.png')}
               />
             </TouchableOpacity>
           </View>
           <SecondTab gateway={this.state.message.superAccount.gateway} 
             scroll={(dir)=>{
-              if(dir){
-                // 自动会回去的
-                // this.scrollView1.scrollTo(50,0,true);
-              }else{
+              if(!dir){
                 this.scrollView1.scrollTo({x:0,y:150,animated:true});
               }
             }}
@@ -562,20 +524,13 @@ export default class superAccountIndex extends Component {
               }}
             >
               <Image 
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10
-                }}
+                style={styles.img}
                 source={require('../img/edit.png')}
               />
             </TouchableOpacity>
           </View>
           <Modal // 修改个人信息模态窗口
             visible={this.state.isPersonalEditShow}
-            //从下面向上滑动 slide
-            //慢慢显示 fade
-            //animationType = {global.animationType}
             //是否透明默认是不透明 false
             transparent = {true}
             //关闭时调用
@@ -598,8 +553,8 @@ export default class superAccountIndex extends Component {
                         this.props.header,
                         (res)=>{
                           if(res.errorcode==0){
-                            this.thirdTabRef.update(this.state.personalEdit_nickname,this.state.personalEdit_mobile);
                             this.setState({isPersonalEditShow: false});
+                            this.thirdTabRef.update(this.state.personalEdit_nickname,this.state.personalEdit_mobile);
                           }else if(res.errorcode==-1){
                             Alert.alert('错误提示','您输入的手机格式有误!',[{text: '确定'}]);
                           }else{
@@ -616,10 +571,7 @@ export default class superAccountIndex extends Component {
           <ThirdTab
             superAccount={this.state.message.superAccount}
             scroll={(dir)=>{
-              if(dir){
-                // 自动会回去的
-                // this.scrollView2.scrollTo(50,0,true);
-              }else{
+              if(!dir){
                 this.scrollView2.scrollTo({x:0,y:150,animated:true});
               }
             }}
@@ -631,16 +583,11 @@ export default class superAccountIndex extends Component {
             <Text style={{fontSize:30}}>系统设置</Text>
             <TouchableOpacity // 点击显示修改个人信息模态窗口
               onPress={()=>{
-                //console.log('个人信息',this.state.message.superAccount);
-                Alert.alert('提示','密码修改,退出登录等!',[{text: '确定'}]);
+                Alert.alert('提示','当前客户端版本为V1.0.0，无需更新！',[{text: '确定'}]);
               }}
             >
               <Image 
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10
-                }}
+                style={styles.img}
                 source={require('../img/setting.png')}
               />
             </TouchableOpacity>
@@ -681,4 +628,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 3,
   },
+  img: {
+    width: 40,
+    height: 40
+  }
 });

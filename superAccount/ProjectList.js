@@ -12,9 +12,8 @@ import {
 import {base_url,httpPostJson} from '../common';
 import TextInputBar from '../my_component/TextInputBar';
 import ButtonItem from '../my_component/ButtonItem';
-import "../GlobalValue";
 
-export default class FirstTabRight extends Component{
+export default class ProjectList extends Component{
   
   constructor(props){    
     super(props);
@@ -53,7 +52,6 @@ export default class FirstTabRight extends Component{
                 this.setState({
                   rights: this.state.rights
                 });
-                console.log("子页面right:",this.state.rights);
               }}
             >
               <Image
@@ -61,10 +59,10 @@ export default class FirstTabRight extends Component{
                 source={img}
               />
             </TouchableOpacity>
+
             <TouchableOpacity // 点击查看工程详情
               style={{flex:3}}
               onPress={()=>{
-                //console.log("第"+rowID+"行被点击了");
                 Alert.alert('工程详情',JSON.stringify(rowData),[{text: '确定'}]);
               }}
             >
@@ -72,10 +70,11 @@ export default class FirstTabRight extends Component{
                 {"编号: "+rowData.id+"  名称: "+rowData.name + "\n备注: " +rowData.remark}
               </Text>
             </TouchableOpacity>
+
             <TouchableOpacity //点击修改子账号权限信息
               onPress={()=>{
                 // 隐藏工程列表显示房间列表
-                this.state.callbackShowRooms(rowData.id);//,this.state.rights);
+                this.state.callbackShowRooms(rowData.id);
               }}
             >
               <Image style={styles.thumb} source={require('../img/power.png')} />
@@ -96,9 +95,6 @@ export default class FirstTabRight extends Component{
         showsVerticalScrollIndicator={false}
         initialListSize={4}
         pageSize={1}
-        onEndReached={()=>{
-          console.log("projects onEndReached");
-        }}
       />
     );
   }

@@ -23,13 +23,12 @@ export default class FirstTab extends Component{
         // 接收 http 请求头
         header: props.header,
         // 设置listview
-        dataSource : new ListView.DataSource({
+        dataSource: new ListView.DataSource({
           rowHasChanged:(r1,r2)=>r1!==r2
         }),
         // 获取子账号绑定关系列表
         data: props.subAccounts?props.subAccounts:[],
       }
-      //console.log(this.state.data);
     }
 
     // 从数组中移除某个元素
@@ -44,7 +43,6 @@ export default class FirstTab extends Component{
 
     // 父组件 ref 调用: 新增子账号绑定关系 & 自动弹出新增子账号绑定关系的编辑权限界面
     addValue(data){
-      console.log("add",data);
       this.state.data.push(data);
       this.setState({
         data: this.state.data
@@ -71,6 +69,7 @@ export default class FirstTab extends Component{
       });
     }
 
+    // 父组件 ref 调用: 更新子账号权限
     updateRights(rowID , rowData , rights){
       rowData.rightJson=rights;
       this.state.data.splice(rowID,1,rowData);
@@ -110,26 +109,22 @@ export default class FirstTab extends Component{
               >
                 <Image style={styles.thumb} source={require('../img/edit.png')} />
               </TouchableOpacity>
+
               <TouchableOpacity // 点击删除子账号绑定关系
                 onPress={()=>{
-                  Alert.alert(
-                    '提示',
-                    '确定要删除与子账号"'+rowData.account+'"的绑定关系吗?',
+                  Alert.alert('提示','确定要删除与子账号"'+rowData.account+'"的绑定关系吗?',
                     [
-                      {text: '取消', onPress: () => {}, style: 'cancel'},
+                      {text: '取消'},
                       {text: '确定', onPress: () => {
                         httpDelete(base_url+'relative/'+rowData.id,this.state.header,
-                          (res)=>{
-                            if(res.errorcode==0){
-                              this.removeByValue(this.state.data,rowData);
-                              this.setState({
-                                data: this.state.data
-                              });
-                            }else{
-                              Alert.alert('错误提示','删除子账号绑定关系失败,请重试!',[{text: '确定'}]);
-                            }
+                        (res)=>{
+                          if(res.errorcode==0){
+                            this.removeByValue(this.state.data,rowData);
+                            this.setState({data: this.state.data});
+                          }else{
+                            Alert.alert('错误提示','删除子账号绑定关系失败,请重试!',[{text: '确定'}]);
                           }
-                        );
+                        });
                       }},
                     ]
                   );
@@ -153,9 +148,6 @@ export default class FirstTab extends Component{
           showsVerticalScrollIndicator={false}
           initialListSize={7}
           pageSize={1}
-          // onEndReached={()=>{
-          //   console.log("subAccounts onEndReached");
-          // }}
         />
       );
     }
@@ -172,6 +164,6 @@ var styles =StyleSheet.create({
   thumb: {
     width: 50,
     height: 50,
-    borderRadius: 10
+    marginLeft: 10
   },
 });

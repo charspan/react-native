@@ -28,8 +28,8 @@ export default class ThirdTab extends Component{
             <Text style={{alignSelf:'flex-start',fontSize:18}}>创建人:  {this.state.superAccount.createAccount+"\n"}</Text>
             <Text style={{alignSelf:'flex-start',fontSize:18}}>创建时间:  {moment(this.state.superAccount.createTime).format("YYYY-MM-DD HH:mm:ss")+"\n"}</Text>
             <Text style={{alignSelf:'flex-start',fontSize:18}}>出厂昵称:  {this.state.superAccount.defaultName+"\n"}</Text>
-            <Text style={{alignSelf:'flex-start',fontSize:18}}>token:  {this.state.superAccount.token+"\n"}</Text>
-            <Text style={{alignSelf:'flex-start',fontSize:18}}>token 过期时间:  {moment(this.state.superAccount.expiresTime).format("YYYY-MM-DD HH:mm:ss")+"\n"}</Text>
+            <Text style={{alignSelf:'flex-start',fontSize:18}}>token:  {this.state.superAccount.token==null?"从未登录\n":this.state.superAccount.token+"\n"}</Text>
+            <Text style={{alignSelf:'flex-start',fontSize:18}}>token 过期时间:  {this.state.superAccount.expiresTime==null?"从未登录\n":moment(this.state.superAccount.expiresTime).format("YYYY-MM-DD HH:mm:ss")+"\n"}</Text>
         </View> : null;
         return (
             <View style={{flexDirection:'row', flex:1,backgroundColor:'rgba(0,0,0,0.8)'}}>
@@ -39,7 +39,7 @@ export default class ThirdTab extends Component{
                     <Text style={{alignSelf:'flex-start',fontSize:18}}>昵称:  {this.state.nickname+"\n"}</Text>
                     <Text style={{alignSelf:'flex-start',fontSize:18}}>手机号:  {this.state.mobile+"\n"}</Text>
                     <Text style={{alignSelf:'flex-start',fontSize:18}}>账号:  {this.state.superAccount.account+"\n"}</Text>
-                    <Text style={{alignSelf:'flex-start',fontSize:18}}>最后登录:  {moment(this.state.superAccount.lastHttpOnlineTime).format("YYYY-MM-DD HH:mm:ss")+"\n"}</Text>
+                    <Text style={{alignSelf:'flex-start',fontSize:18}}>最后登录:  {this.state.superAccount.lastHttpOnlineTime==null?"从未登录\n":moment(this.state.superAccount.lastHttpOnlineTime).format("YYYY-MM-DD HH:mm:ss")+"\n"}</Text>
                     <Text style={{alignSelf:'flex-start',fontSize:18}}>状态:  {this.state.superAccount.usable==0?'可用':'不可用'}</Text>
                     <Text style={{padding: 3,backgroundColor:'rgba(0,0,255,0.5)',alignSelf: 'flex-end',fontSize:16}} onPress={()=>{
                         this.setState({
