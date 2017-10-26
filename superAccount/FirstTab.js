@@ -6,8 +6,7 @@ import {
   ListView,
   Image,
   TouchableOpacity,
-  Alert,
-  Modal
+  Alert
 } from'react-native';
 import {base_url,httpDelete} from '../common';
 import TextInputBar from '../my_component/TextInputBar';

@@ -567,20 +567,17 @@ export default class superAccountIndex extends Component {
                       this.state.personalEdit_nickname=this.personalEdit_nickname.getValue();
                       this.state.personalEdit_mobile=this.personalEdit_mobile.getValue();
                       // 进行网络请求
-                      httpPut(base_url+'client/info',
-                        {nickname: this.state.personalEdit_nickname,mobile: this.state.personalEdit_mobile},
-                        this.props.header,
-                        (res)=>{
-                          if(res.errorcode==0){
-                            this.setState({isPersonalEditShow: false});
-                            this.thirdTabRef.update(this.state.personalEdit_nickname,this.state.personalEdit_mobile);
-                          }else if(res.errorcode==-1){
-                            Alert.alert('错误提示','您输入的手机格式有误!',[{text: '确定'}]);
-                          }else{
-                            Alert.alert('错误提示','修改账号信息失败,请重试!',[{text: '确定'}]);
-                          }
+                      httpPut(base_url+'client/info',{nickname: this.state.personalEdit_nickname,mobile: this.state.personalEdit_mobile},this.props.header,
+                      (res)=>{
+                        if(res.errorcode==0){
+                          this.setState({isPersonalEditShow: false});
+                          this.thirdTabRef.update(this.state.personalEdit_nickname,this.state.personalEdit_mobile);
+                        }else if(res.errorcode==-1){
+                          Alert.alert('错误提示','您输入的手机格式有误!',[{text: '确定'}]);
+                        }else{
+                          Alert.alert('错误提示','修改账号信息失败,请重试!',[{text: '确定'}]);
                         }
-                      );
+                      });
                     }}
                   />
                 </View>

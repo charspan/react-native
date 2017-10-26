@@ -12,6 +12,7 @@ import {
 import {base_url,getRandomNum,jiami,httpPostJson,httpGet} from './common';
 import CheckBox from './my_component/CheckBox.js';
 import SuperAccountIndex from './superAccount/superAccountIndex';
+import SubAccountIndex from './subAccount/subAccountIndex';
 
 // 登录界面
 export default class login extends Component {
@@ -116,11 +117,16 @@ export default class login extends Component {
                                                 return;
                                             }else{
                                                 if(this.state.accountType==0){// 子账号
-                                                    Alert.alert(
-                                                        '子账号页面暂未开放!',
-                                                        '您获得的信息是:'+JSON.stringify(res2.data),
-                                                        [{text: '确定'}]
-                                                    );
+                                                    // 采用替换当前场景
+                                                    this.props.navigator.replace({
+                                                        name: 'SubAccountIndex',
+                                                        component: SubAccountIndex,
+                                                        params: {
+                                                            message: res2.data,
+                                                            navigator: this.props.navigator,
+                                                            header: header
+                                                        }
+                                                    });
                                                 }else{// 超级账号
                                                     // 采用替换当前场景
                                                     this.props.navigator.replace({
