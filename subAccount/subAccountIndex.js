@@ -16,8 +16,6 @@ export default class subAccountIndex extends Component{
             defaultBinding: {}, // 当前绑定关系对象
             isGatewayShow: false, // 是否显示选择默认网关
         }
-        // console.log(props);
-        // console.log(props.message.bindings);
         global.storage.load({
             key: 'defaultBinding',
             id: props.message.subAccount.id,
@@ -34,9 +32,9 @@ export default class subAccountIndex extends Component{
           }).catch(err => {
             if(props.message.bindings.length==0){
                 Alert.alert('错误','当前子账号不可用!',[{text: '确定'}]);
-            }else if(props.message.bindings.length==1){
+            }else if(props.message.bindings.length==1){ // 当前子账号只绑定了一个网关，那么默认就是那一个网关
                 this.setState({
-                    defaultBinding: defaultBinding
+                    defaultBinding: props.message.bindings[0]
                 });
             }else{
                 this.setState({
@@ -46,8 +44,32 @@ export default class subAccountIndex extends Component{
           });
     }
 
+    // 渲染网关列表
     renderGatewayItem=(item)=>{
         return <GatewayItem key={item.id} item={item} subAccountId={this.props.message.subAccount.id}/>;
+    }
+
+    // 加载当前选中网关
+    loadDefaultBinding=()=>{
+        // 读取选中的网关信息
+        global.storage.load({
+            key: 'defaultBinding',
+            id: this.props.message.subAccount.id,
+            // autoSync(默认为true)意味着在没有找到数据或数据过期时自动调用相应的sync方法
+            autoSync: false,
+          }).then(defaultBinding => {
+            // 如果找到数据，则在then方法中返回
+            // 注意：这是异步返回的结果（不了解异步请自行搜索学习）
+            // 只能在then这个方法内继续处理ret数据而不能在then以外处理,也没有办法“变成”同步返回
+            // 也可以使用“看似”同步的async/await语法
+            this.setState({
+                defaultBinding: defaultBinding
+            });
+            // 隐藏网关选中列表
+            this.setState({isGatewayShow: false});
+          }).catch(err => {
+            Alert.alert('提示','请选择一个绑定网关!',[{text: '确定'}]);
+          });
     }
 
     render(){
@@ -70,52 +92,15 @@ export default class subAccountIndex extends Component{
                             <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center',marginTop:10}}>
                                 <ButtonItem label="仅打开一次" 
                                 func={()=> {
-                                    // 读取选中的网关信息
-                                    global.storage.load({
-                                        key: 'defaultBinding',
-                                        id: this.props.message.subAccount.id,
-                                        // autoSync(默认为true)意味着在没有找到数据或数据过期时自动调用相应的sync方法
-                                        autoSync: false,
-                                      }).then(defaultBinding => {
-                                        // 如果找到数据，则在then方法中返回
-                                        // 注意：这是异步返回的结果（不了解异步请自行搜索学习）
-                                        // 只能在then这个方法内继续处理ret数据而不能在then以外处理,也没有办法“变成”同步返回
-                                        // 也可以使用“看似”同步的async/await语法
-                                        this.setState({
-                                            defaultBinding: defaultBinding
-                                        });
-                                        console.log(this.state.defaultBinding);
-                                        // 隐藏网关选中列表
-                                        this.setState({isGatewayShow: false});
-                                      }).catch(err => {
-                                        Alert.alert('错误','请选择一个绑定网关!',[{text: '确定'}]);
-                                      });
-                                      console.log(this.state.defaultBinding);
-                                      // 移除本地的选中网关信息
-                                      global.storage.remove({key:'defaultBinding',id:this.props.message.subAccount.id});
+                                    // 加载当前选中网关
+                                    this.loadDefaultBinding();
+                                    // 移除本地的选中网关信息
+                                    global.storage.remove({key:'defaultBinding',id:this.props.message.subAccount.id});
                                 }}/>
                                 <ButtonItem label="设置为默认" 
                                 func={()=>{
-                                   // 读取选中的网关信息
-                                   global.storage.load({
-                                        key: 'defaultBinding',
-                                        id: this.props.message.subAccount.id,
-                                        // autoSync(默认为true)意味着在没有找到数据或数据过期时自动调用相应的sync方法
-                                        autoSync: false,
-                                    }).then(defaultBinding => {
-                                        // 如果找到数据，则在then方法中返回
-                                        // 注意：这是异步返回的结果（不了解异步请自行搜索学习）
-                                        // 只能在then这个方法内继续处理ret数据而不能在then以外处理,也没有办法“变成”同步返回
-                                        // 也可以使用“看似”同步的async/await语法
-                                        this.setState({
-                                            defaultBinding: defaultBinding
-                                        });
-                                        console.log(this.state.defaultBinding);
-                                        // 隐藏网关选中列表
-                                        this.setState({isGatewayShow: false});
-                                    }).catch(err => {
-                                        Alert.alert('错误','请选择一个绑定网关!',[{text: '确定'}]);
-                                    });
+                                    // 加载当前选中网关
+                                    this.loadDefaultBinding();
                                 }}
                                 />
                             </View>
@@ -123,9 +108,8 @@ export default class subAccountIndex extends Component{
                     </View>
                 </Modal>
                 <View style={{justifyContent: 'center',height:100}}>
-                    <Text onPress={()=> this.setState({isGatewayShow: true})}>显示显示显示显示显示显示显示显示显示显示</Text>
+                    <Text onPress={()=> this.setState({isGatewayShow: true})}>{JSON.stringify(this.state.defaultBinding)}</Text>
                 </View>
-                <Text onPress={()=> this.setState({isGatewayShow: true})}>{JSON.stringify(this.state.defaultBinding)}</Text>
             </View>
         );
     }
