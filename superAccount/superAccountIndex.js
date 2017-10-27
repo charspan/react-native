@@ -17,7 +17,7 @@ import TextInputBar from '../my_component/TextInputBar';
 import ButtonItem from '../my_component/ButtonItem';
 import FirstTab from './FirstTab';
 import ProjectList from './ProjectList';
-import {base_url,httpPostJson,httpPut,httpGet} from '../common';
+import {base_accountmanager_url,httpPostJson,httpPut,httpGet} from '../common';
 import moment from 'moment';
 import SecondTab from './SecondTab';
 import ThirdTab from './ThirdTab';
@@ -76,7 +76,7 @@ export default class superAccountIndex extends Component {
       global.storage.defaultExpires=86400000;
     });
     // 获取所有子账号权限信息
-    httpGet(base_url+"subAccountRights",{superAccountId:this.state.message.superAccount.id},this.props.header,
+    httpGet(base_accountmanager_url+"subAccountRights",{superAccountId:this.state.message.superAccount.id},this.props.header,
     (res)=>{
       if(res.errorcode==0){
         // 遍历登录获取的子账号绑定关系列表 
@@ -187,7 +187,7 @@ export default class superAccountIndex extends Component {
                         Alert.alert('错误提示','该子账号的绑定关系已经存在!',[{text: '确定'}]);
                       } else {
                         // 进行网络请求
-                        httpPostJson(base_url+'relative',{account: this.state.newSubAccount_account,subRelatedName: this.state.newSubAccount_relativeName},this.props.header,
+                        httpPostJson(base_accountmanager_url+'relative',{account: this.state.newSubAccount_account,subRelatedName: this.state.newSubAccount_relativeName},this.props.header,
                           (res)=>{
                             if(res.errorcode==0){
                               this.setState({isSubAccountAddShow: false});
@@ -218,7 +218,7 @@ export default class superAccountIndex extends Component {
                   <ButtonItem label="取 消" func={()=> this.setState({isSubAccountEditShow: false})}/>
                   <ButtonItem label="提 交" 
                     func={()=>{
-                      httpPut(base_url+'relative/'+this.state.rowDataEdit.id,{subRelatedName: this.editSubAccount_relativeName.getValue()},this.props.header,
+                      httpPut(base_accountmanager_url+'relative/'+this.state.rowDataEdit.id,{subRelatedName: this.editSubAccount_relativeName.getValue()},this.props.header,
                         (res)=>{
                           if(res.errorcode==0){
                             this.firstTabRef.editValue(this.state.rowIDEdit,this.state.rowDataEdit,this.editSubAccount_relativeName.getValue());
@@ -289,7 +289,7 @@ export default class superAccountIndex extends Component {
                     // 设置及时同步数据函数
                     global.storage.sync = {
                       storageRooms(params){
-                        httpPostJson(base_url+"UIDesigner/"+params.syncParams.superAccountId+"/"+params.syncParams.projectId+"/rooms",{},params.syncParams.header,
+                        httpPostJson(base_accountmanager_url+"UIDesigner/"+params.syncParams.superAccountId+"/"+params.syncParams.projectId+"/rooms",{},params.syncParams.header,
                         (res)=>{
                           console.log("rooms");
                           if(res.errorcode==0){
@@ -355,7 +355,7 @@ export default class superAccountIndex extends Component {
                     func={()=>{
                       // 在这里提交修改子账号权限信息的网络请求
                       if(JSON.stringify(this.state.rights)!=this.state.rowDataEdit.rightJson){
-                        httpPut(base_url+"subAccountRights/"+this.state.rightId,{rightJson: JSON.stringify(this.state.rights)},this.props.header,
+                        httpPut(base_accountmanager_url+"subAccountRights/"+this.state.rightId,{rightJson: JSON.stringify(this.state.rights)},this.props.header,
                         (res)=>{
                           if(res.errorcode==0){
                             this.firstTabRef.updateRights(this.state.rowIDEdit,this.state.rowDataEdit,JSON.stringify(this.state.rights));
@@ -444,7 +444,7 @@ export default class superAccountIndex extends Component {
               // 设置及时同步数据函--获取工程列表
               global.storage.sync = {
                 storageProjects(params){
-                  httpPostJson(base_url+"UIDesigner/"+params.syncParams.superAccountId+"/projects",{},params.syncParams.header,
+                  httpPostJson(base_accountmanager_url+"UIDesigner/"+params.syncParams.superAccountId+"/projects",{},params.syncParams.header,
                     (res)=>{
                       console.log("projecs");
                       if(res.errorcode==0){
@@ -567,7 +567,7 @@ export default class superAccountIndex extends Component {
                       this.state.personalEdit_nickname=this.personalEdit_nickname.getValue();
                       this.state.personalEdit_mobile=this.personalEdit_mobile.getValue();
                       // 进行网络请求
-                      httpPut(base_url+'client/info',{nickname: this.state.personalEdit_nickname,mobile: this.state.personalEdit_mobile},this.props.header,
+                      httpPut(base_accountmanager_url+'client/info',{nickname: this.state.personalEdit_nickname,mobile: this.state.personalEdit_mobile},this.props.header,
                       (res)=>{
                         if(res.errorcode==0){
                           this.setState({isPersonalEditShow: false});

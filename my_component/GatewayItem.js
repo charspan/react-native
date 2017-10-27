@@ -1,18 +1,18 @@
 import React, { Component } from 'react';
-import { View,Text,TouchableOpacity,Image,StyleSheet } from 'react-native';
+import { View,Text,TouchableOpacity,Modal,Image,StyleSheet } from 'react-native';
 import "../GlobalValue";
 
 export default class GatewayItem extends Component{
     constructor(props){
         super(props);
         this.state={
-            isChecked: false,
-            readThreadId: -1
+            isChecked: false, // 是否被选中
+            readThreadId: -1, // 循环读取的“线程号”
         }
         // 每100毫秒读取自己是否被选中，进而修改UI
         var readThreadId = setInterval(()=>{
             global.storage.load({
-                key: 'defaultBinding', // 默认缓存绑定关系（默认网关） 
+                key: 'currentBinding', // 当前选中的绑定关系
                 id: props.subAccountId, // 以当前子账号的编号作为id
                 // autoSync(默认为true)意味着在没有找到数据或数据过期时自动调用相应的sync方法
                 autoSync: false,
@@ -46,9 +46,9 @@ export default class GatewayItem extends Component{
             <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={()=>{
-                    // 利用本地缓存的方式，实现通知父组件选中的网关信息
+                    // 利用本地缓存的方式，实现通知父组件当前选中的网关信息
                     global.storage.save({
-                        key: 'defaultBinding',
+                        key: 'currentBinding',
                         id: this.props.subAccountId,
                         data: this.props.item,
                         // 如果不指定过期时间，则会使用defaultExpires参数，设为null，则永不过期
@@ -58,6 +58,7 @@ export default class GatewayItem extends Component{
                     this.setState({isChecked:true});
                 }}
             >
+                
                 <View style={this.state.isChecked?styles.checked:styles.unchecked}>
                     <View style={{flex:4,justifyContent:"center",}}>
                         <Text style={styles.gatewayTxt}>账号: {this.props.item.account}</Text>

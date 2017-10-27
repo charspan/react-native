@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { View,Text,StyleSheet,Alert,Modal} from 'react-native';
 import moment from 'moment';
 import ButtonItem from '../my_component/ButtonItem';
-import {base_url,httpPut,md5, jiami} from '../common';
+import {base_accountmanager_url,httpPut,md5, jiami} from '../common';
 import TextInputBar from '../my_component/TextInputBar';
 import Login from '../login';
 import "../GlobalValue";
@@ -50,7 +50,7 @@ export default class FourthTab extends Component{
                                                 Alert.alert('错误提示','两次输入密码不一致,请重试!',[{text: '确定'}]);
                                             }else{
                                                 // 进行网络请求
-                                                httpPut(base_url+'client/info',{password: jiami(this.changePassword_password.getValue())},this.state.header,
+                                                httpPut(base_accountmanager_url+'client/info',{password: jiami(this.changePassword_password.getValue())},this.state.header,
                                                 (res)=>{
                                                     if(res.errorcode==0){
                                                         this.setState({password:md5(this.changePassword_password.getValue())});

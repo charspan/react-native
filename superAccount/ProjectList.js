@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   Alert,
 } from'react-native';
-import {base_url,httpPostJson} from '../common';
+import {base_accountmanager_url,httpPostJson} from '../common';
 import TextInputBar from '../my_component/TextInputBar';
 import ButtonItem from '../my_component/ButtonItem';
 

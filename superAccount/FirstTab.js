@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Alert
 } from'react-native';
-import {base_url,httpDelete} from '../common';
+import {base_accountmanager_url,httpDelete} from '../common';
 import TextInputBar from '../my_component/TextInputBar';
 import ButtonItem from '../my_component/ButtonItem';
 
@@ -115,7 +115,7 @@ export default class FirstTab extends Component{
                     [
                       {text: '取消'},
                       {text: '确定', onPress: () => {
-                        httpDelete(base_url+'relative/'+rowData.id,this.state.header,
+                        httpDelete(base_accountmanager_url+'relative/'+rowData.id,this.state.header,
                         (res)=>{
                           if(res.errorcode==0){
                             this.removeByValue(this.state.data,rowData);

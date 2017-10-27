@@ -9,7 +9,7 @@ import {
     Alert
 } from 'react-native';
 
-import {base_url,getRandomNum,jiami,httpPostJson,httpGet} from './common';
+import {base_accountmanager_url,getRandomNum,jiami,httpPostJson,httpGet} from './common';
 import CheckBox from './my_component/CheckBox.js';
 import SuperAccountIndex from './superAccount/superAccountIndex';
 import SubAccountIndex from './subAccount/subAccountIndex';
@@ -94,14 +94,14 @@ export default class login extends Component {
                     underlayColor='#63BFFF'
                     onPress={()=>{
                         // 获取系统时间戳
-                        httpGet(base_url+'timestamp/'+this.state.accountType+'/'+this.state.account,{randomCode:getRandomNum()},{},
+                        httpGet(base_accountmanager_url+'timestamp/'+this.state.accountType+'/'+this.state.account,{randomCode:getRandomNum()},{},
                         (res0)=>{
                             if(res0.errorcode!=0){
                                 Alert.alert('提示','您的账号不存在,请重试!',[{text: '确定'}]);
                                 return;
                             }else{
                                 // 获取 token
-                                httpPostJson(base_url+'tokens/'+ this.state.accountType+'/'+this.state.account,
+                                httpPostJson(base_accountmanager_url+'tokens/'+ this.state.accountType+'/'+this.state.account,
                                 {randomStr:res0.data.randomStr,timestamp:res0.data.timestamp,password:jiami(this.state.password)},{},
                                 (res1)=>{
                                     if(res1.errorcode!=0){
@@ -110,7 +110,7 @@ export default class login extends Component {
                                     }else{
                                         var header={type:this.state.accountType,account:this.state.account,token:res1.data.token};
                                         // 获取个人信息
-                                        httpGet(base_url+'client/info',{},header,
+                                        httpGet(base_accountmanager_url+'client/info',{},header,
                                         (res2)=>{
                                             if(res2.errorcode!=0){
                                                 Alert.alert('提示','验证信息失败,请重试!',[{text: '确定'}]);

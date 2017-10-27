@@ -2,7 +2,9 @@ import React, {Component} from 'React';
 import forge from 'node-forge';
 
 // 请求基地址
-export const base_url="http://www.rudolphsmart.com:8080/v2/";
+export const base_accountmanager_url="http://www.rudolphsmart.com:8080/v2/";
+
+export const base_uidesigner_url="http://www.rudolphsmart.com:8080/UIDesigner/projects/";
 
 // 获取1~999随机正整数
 export function getRandomNum(){
