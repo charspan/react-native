@@ -9,6 +9,7 @@ export default class GatewayItem extends Component{
             isChecked: false, // 是否被选中
             readThreadId: -1, // 循环读取的“线程号”
         }
+        // console.log(props.item.id,props.defaultGatewayId);
         // 每100毫秒读取自己是否被选中，进而修改UI
         var readThreadId = setInterval(()=>{
             global.storage.load({
@@ -16,16 +17,17 @@ export default class GatewayItem extends Component{
                 id: props.subAccountId, // 以当前子账号的编号作为id
                 // autoSync(默认为true)意味着在没有找到数据或数据过期时自动调用相应的sync方法
                 autoSync: false,
-              }).then(defaultBinding => {
+              }).then(currentBinding => {
                 // 如果找到数据，则在then方法中返回
                 // 注意：这是异步返回的结果（不了解异步请自行搜索学习）
                 // 只能在then这个方法内继续处理ret数据而不能在then以外处理,也没有办法“变成”同步返回
                 // 也可以使用“看似”同步的async/await语法
-                if(defaultBinding.id==props.item.id){
+                if(currentBinding.id==props.item.id){
                     this.setState({isChecked:true});
                 }else{
                     this.setState({isChecked:false});
                 }
+
               }).catch(err => {
                 this.setState({isChecked:false});
               });
@@ -62,7 +64,7 @@ export default class GatewayItem extends Component{
                 <View style={this.state.isChecked?styles.checked:styles.unchecked}>
                     <View style={{flex:4,justifyContent:"center",}}>
                         <Text style={styles.gatewayTxt}>账号: {this.props.item.account}</Text>
-                        <Text style={styles.gatewayTxt}>昵称: {this.props.item.superRelatedName}</Text>
+                        <Text style={styles.gatewayTxt}>昵称: {this.props.item.superRelatedName}{this.props.defaultGatewayId==this.props.item.id?"     (默认)":""}{/*this.state.isChecked?"(当前)":""*/}</Text>
                         <Text style={styles.gatewayTxt}>设备号: {this.props.item.serialNumber}</Text>
                     </View>
                     <View style={{flex:1,justifyContent:"center"}}>

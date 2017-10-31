@@ -6,16 +6,104 @@ import GatewayItem from '../my_component/GatewayItem';
 import "../GlobalValue";
 import {base_accountmanager_url,base_uidesigner_url,httpPostJson} from "../common"
 
+/**
+ * 复杂逻辑
+ * 
+ * ①. 设置默认网关(defaultGateway)功能相关逻辑
+ * 
+ *                        用户登陆
+ * ⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇
+ * if(当前缓存中有无此用户设置的默认网关信息(defaultGatewaySetted)){
+ *     defaultGateway=defaultGatewaySetted;
+ * }else{
+ *      if(此用户绑定网关是否只有一个(onlyGateway)){
+ *          defaultGateway=onlyGateway;
+ *      }else{
+ *               用户登录 与 用户修改默认网关共用
+ *          ⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇
+ *          显示选择网关列表界面
+ *          此用户选中了某个网关(currentGatewaySetted)
+ *          if(此用户选择“设置为默认”){
+ *              defaultGateway=currentGatewaySetted;
+ *              并将当前用户选择defaultGateway的信息缓存
+ *              同时将默认工程缓存（如果有）清空
+ *          }else{ // 此用户选择“仅打开一次”
+ *              不做操作
+ *          }
+ *      }
+ * }
+ * 具体实现方式：
+ *  1. 用自定义组件GatewayItem和ScrollView来实现类似ListView的网关选择列表（认为这样性能比较高），
+ *     并利用本地缓存和“持续监听”的方式及时更新界面
+ *  2. 用key: currentBinding,id: 子账号的编号来缓存用户当前选中的绑定关系
+ *     用key: defaultBinding,id: 子账号的编号来缓存用户默认的绑定关系
+ *     他们的存储格式如下：
+ *     {
+            "id": 6, // 关系编号
+            "superAccountId" : 1,  // 超级账号编号
+            "serialNumber":"B0:22:CC:ED:34:93", // 网关序列号
+            "account": "superAccount", // 超级账号的账号
+            "superRelatedName": "超级账号", // 设置的备注
+            "createTime": "2017-04-27 17:36:51.0" // 绑定时间
+        }
+    3. 然后按照逻辑①实现即可
+ * 
+ * ②. 设置默认工程相关逻辑
+ *
+ *          默认工程功能
+ * ⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇   
+ * 情况一: 默认网关没有更换的情况（没有设置默认网关或者设置了默认网关且没有更换）
+ *  if(默认网关是否已经设置){
+ *      if(默认工程是否已经设置){
+ *          显示工程内部房间列表信息
+ *          显示返回工程列表的按钮
+ *      }else{
+ *          显示当前网关下的工程列表
+ *          当用户选择打开某个工程时提示用户：仅打开一次 或者 设置为默认
+ *          if(用户选择设置为默认){
+ *              将当前用户选择的工程设置为默认工程
+ *          }
+ *      }
+ *  }else{
+ *      显示工程列表
+ *      用户点击某个工程直接进入房间列表页
+ *  }
+ * 情况二: 存在修改默认网关的情况下
+ *  if(默认网关是否被修改){
+ *      清除原本的默认工程（如果有）
+ *      显示当前网关的工程列表
+ *      当用户选择打开某个工程时提示用户：仅打开一次 或者 设置为默认
+ *  }else{
+ *      情况一
+ *  }
+ * 具体实现方式：
+ * 1. 用listview存放工程列表
+ * 2. 用key: defaultProject,id: 子账号的编号来缓存用户当前选中的工程
+ *    用变量 currentProject 存储当前用户使用的工程
+ *    格式如下:
+ *    {
+ *      "id":261, // 工程编号
+ *      "name":"别墅模型",
+ *      "remark":"别墅模型",
+ *      "isCollect":0, // 是否收藏
+ *      "img":"18/261/e3fb5de6-1fcb-4d80-bf89-155754de9b8b.png", // UIDesigner网页上的工程背景
+ *      "phoneImgName":null // IPhone上的工程背景
+ *  }
+ * 3. 维护变量currentProject和defaultProject缓存信息
+ * 4. 用布尔变量 isRoomListShow 来控制是否显示工程列表和房间列表
+ * 
+ */
+
 export default class subAccountIndex extends Component{
 
     constructor(props){
         super(props);
         this.state={
-            message: props.message,
-            header: props.header,
-            navigator: props.navigator,
+            message: props.message, // 子账号登录后台返回的信息
+            header: props.header, // 请求头部
+            navigator: props.navigator, // 导航
             /**
-             * defaultBinding存储结构
+             * defaultBinding 存储结构
             {
                 "id": 6, // 关系编号
                 "superAccountId" : 1,  // 超级账号编号
@@ -33,17 +121,18 @@ export default class subAccountIndex extends Component{
             dataSource : new ListView.DataSource({
                 rowHasChanged:(r1,r2)=>r1!==r2
             }),
-            isOpenProjectOptionShow: false, // 是否显示打开工程选项
+            isOpenProjectOptionShow: false, // 是否显示打开工程选项 打开一次 还是 设置默认
+            defaultProject: {}, // 默认工程
             currentProject: {}, // 当前所处工程信息
-            isRoomListShow: false, // 是否已经选中工程并打开
+            isRoomListShow: false, // 是否已经选中工程并打开 或者是否没有选定网关
         }
         // 读取默认网关，设置默认网关和当前网关
         global.storage.load({
             key: 'defaultBinding',
             id: props.message.subAccount.id,
-            // autoSync(默认为true)意味着在没有找到数据或数据过期时自动调用相应的sync方法
             autoSync: false,
           }).then(binding => {
+              console.log("打开后找到默认绑定网关",binding);
             // 读取默认网关，设置默认网关和当前网关
             this.setState({
                 defaultBinding: binding,
@@ -54,21 +143,21 @@ export default class subAccountIndex extends Component{
             global.storage.load({
                 key: 'defaultProject',
                 id: props.message.subAccount.id,
-                // autoSync(默认为true)意味着在没有找到数据或数据过期时自动调用相应的sync方法
                 autoSync: false,
               }).then(project => {
                   // 如果能找到默认的工程,直接打开工程
                   this.setState({
-                      currentProject: project,
-                      isRoomListShow: true
+                    defaultProject: project,
+                    currentProject: project,
+                    isRoomListShow: true
                   });
-                  console.log("默认工程",this.state.currentProject);
-
+                  console.log("打开后找到默认工程",JSON.stringify(this.state.currentProject));
               }).catch(err => {
                 // 读取不到默认工程，则加载工程列表,让用户选择工程
                 this.loadDefaultProjectList();
               });
           }).catch(err => {
+              // 读取不到默认网关，则看情况加载网关列表,让用户选择网关
             if(props.message.bindings.length==0){
                 Alert.alert('错误','当前子账号不可用!',[{text: '确定'}]);
             }else if(props.message.bindings.length==1){ // 当前子账号只绑定了一个网关，那么默认就是那一个网关
@@ -78,17 +167,20 @@ export default class subAccountIndex extends Component{
                 });
                 // 加载工程列表
                 this.loadDefaultProjectList();
-            }else{
+            }else{ // 有多个绑定网关，显示网关列表，让用户选择
                 this.setState({
-                    isGatewayShow: true
+                    isGatewayShow: true,
+                    isRoomListShow: true // 没有选定网关
                 });
             }
           });
+          // 删除上一次选择网关情况
+          global.storage.remove({key:'currentBinding',id:this.props.message.subAccount.id});
     }
 
-    // 渲染网关列表
+    // 渲染网关列表项
     renderGatewayItem=(item)=>{
-        return <GatewayItem key={item.id} item={item} subAccountId={this.props.message.subAccount.id}/>;
+        return <GatewayItem key={item.id} item={item} subAccountId={this.props.message.subAccount.id} defaultGatewayId={this.state.defaultBinding.id}/>;
     }
 
     // 加载当前选中网关 && 加载工程列表 && 根据是否设置为默认来设置默认绑定网关信息
@@ -97,7 +189,6 @@ export default class subAccountIndex extends Component{
         global.storage.load({
             key: 'currentBinding',
             id: this.props.message.subAccount.id,
-            // autoSync(默认为true)意味着在没有找到数据或数据过期时自动调用相应的sync方法
             autoSync: false,
         }).then(binding => {
             // 设置当前选中网关，隐藏选择网关列表
@@ -105,28 +196,34 @@ export default class subAccountIndex extends Component{
                 currentBinding: binding,
                 isGatewayShow: false
             });
-            // 换个网关但是没换默认网关 或者 为设置默认网关情况
+            // 换个网关但是没换默认网关 或者 未设置默认网关情况
             if(this.state.currentBinding.id!=this.state.defaultBinding.id){
                 this.setState({
-                    currentProject: {}, // 默认绑定网关都已经换了，所以默认工程不得不换
+                   // defaultProject: {}, // 默认绑定网关都已经换了，所以默认工程不得不换
+                    currentProject: {}, // 当前网关都已经换了，所以当前工程不得不换
                     isRoomListShow: false, // 隐藏房间列表并显示工程列表
                 });
+                if(isAlways){
+                    this.setState({
+                        defaultProject: {}
+                    });
+                }
                 console.log("网关仅打开一次");
                 // 加载工程列表
                 this.loadDefaultProjectList();  
-            }else{// 读取默认工程
+            }else{// 当前网关和默认的网关一样，尝试读取默认工程
                 global.storage.load({
                     key: 'defaultProject',
                     id: this.props.message.subAccount.id,
-                    // autoSync(默认为true)意味着在没有找到数据或数据过期时自动调用相应的sync方法
                     autoSync: false,
                   }).then(project => {
                       // 如果能找到默认的工程,直接打开工程
                       this.setState({
-                          currentProject: project,
-                          isRoomListShow: true
+                        defaultProject: project,
+                        currentProject: project,
+                        isRoomListShow: true
                       });
-                      console.log("切换回来 读取默认工程",this.state.currentProject);
+                      console.log("切换回来 读取到默认工程",this.state.currentProject);
                   }).catch(err => {
                     // 读取不到默认工程，则加载工程列表,让用户选择工程
                     this.setState({
@@ -158,6 +255,7 @@ export default class subAccountIndex extends Component{
                     this.setState({
                         defaultBinding: this.state.currentBinding,
                         currentProject: {}, // 默认绑定网关都已经换了，所以默认工程不得不换
+                        defaultProjec: {}, // 默认绑定网关都已经换了，所以默认工程不得不换
                         isRoomListShow: false, // 隐藏房间列表并显示工程列表
                     });
                     // 加载工程列表
@@ -251,7 +349,7 @@ export default class subAccountIndex extends Component{
                     <View style={{flex:1,justifyContent: 'center',backgroundColor:'rgba(0,0,0,0.8)'}}>
                         <View style={{padding:15,height:300, backgroundColor:'#FFBFFF'}}>
                             <Text style={{justifyContent:'center',alignSelf:'center',fontSize:24,color:'white',padding:5}}>智能网关列表</Text>
-                            <ScrollView keyboardDismissMode={'on-drag'}>
+                            <ScrollView>
                                 {this.props.message.bindings.map(item=>this.renderGatewayItem(item))}
                             </ScrollView>
                             <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center',marginTop:10}}>
@@ -261,10 +359,11 @@ export default class subAccountIndex extends Component{
                         </View>
                     </View>
                 </Modal>
-                <Modal // 打开工程选项
+
+                <Modal // 打开工程的选项 仅打开一次或者设置为默认
                     visible={this.state.isOpenProjectOptionShow}
                     //是否透明默认是不透明 false
-                    transparent = {true}
+                    transparent={true}
                     //关闭时调用
                     onRequestClose={()=>{}}
                 >
@@ -293,6 +392,7 @@ export default class subAccountIndex extends Component{
                                         expires: null
                                     });
                                     this.setState({
+                                        defaultProject: this.state.currentProject,
                                         isOpenProjectOptionShow: false,
                                         isRoomListShow:true
                                     });
@@ -303,12 +403,13 @@ export default class subAccountIndex extends Component{
                 </Modal>
 
                 <View style={{flexDirection:'column', justifyContent: 'center',height:50,backgroundColor:'red'}}>
-                    <Text style={{fontSize:20}} onPress={()=>this.setState({isGatewayShow: true})}>默认网关：{this.state.defaultBinding.id}</Text>
-                    <Text style={{fontSize:20}} onPress={()=>this.setState({isGatewayShow: true})}>当前网关：{this.state.currentBinding.id}</Text>
+                    <Text style={{fontSize:20}} onPress={()=>this.setState({isGatewayShow: true})}>默认网关/工程：{this.state.defaultBinding.id}/{this.state.defaultProject.name}</Text>
+                    <Text style={{fontSize:20}} onPress={()=>this.setState({isGatewayShow: true})}>当前网关/工程：{this.state.currentBinding.id}/{this.state.currentProject.name}</Text>
                 </View>
-                {/* 工程列表 */}
+                
                 { 
-                    !this.state.isRoomListShow?(
+                    !this.state.isRoomListShow ? (
+                        // 工程列表
                         <View style={{justifyContent: 'center',flex:1}}>
                             <Text style={{justifyContent:'center',alignSelf:'center',fontSize:24,padding:5}}>工程列表</Text>
                             <ListView
@@ -322,13 +423,15 @@ export default class subAccountIndex extends Component{
                             />
                         </View>
                     ) : (
-                        
-                        <Text stye={{color:"white",fontSize:20}}
-                            onpress={()=>{
-                                console.log("当前网关",this.state.currentBinding);
-                                console.log("当前工程",this.state.currentProject);
-                            }}
-                        >我已经确认当前的网关和当前的工程，现在可以展示房间了</Text>
+                        this.state.currentProject.id != undefined ? (
+                            // 房间列表
+                            <Text stye={{color:"white",fontSize:20}}
+                                onpress={()=>{
+                                    console.log("当前网关",this.state.currentBinding);
+                                    console.log("当前工程",this.state.currentProject);
+                                }}
+                            >我已经确认当前的网关和当前的工程，现在可以展示房间了</Text>
+                        ) : null
                     )
                 }
             </View>
