@@ -430,7 +430,7 @@ export default class superAccountIndex extends Component {
             }}
             // 传递显示编辑子账号权限信息界面回调方法
             callbackShowProjects={(rowID,rowData)=>{
-              if(rowData.rightJson.indexOf('jurisdictionList')==-1){
+              if(rowData.rightJson.indexOf('jurisdictionList')==-1){//过滤公司的json结构
                 this.setState({
                   rowIDEdit: rowID,
                   rowDataEdit: rowData,

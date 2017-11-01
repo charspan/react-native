@@ -3,8 +3,9 @@ import forge from 'node-forge';
 
 // 请求基地址
 export const base_accountmanager_url="http://www.rudolphsmart.com:8080/v2/";
-
-export const base_uidesigner_url="http://www.rudolphsmart.com:8080/UIDesigner/projects/";
+// export const base_accountmanager_url="http://192.168.1.141:8080/v2/";
+export const base_uidesigner_url="http://www.rudolphsmart.com:8080/UIDesigner/";
+// export const base_uidesigner_url="http://192.168.1.141:8080/UIDesigner/";
 
 // 获取1~999随机正整数
 export function getRandomNum(){
@@ -109,6 +110,35 @@ export function httpGet(url,params,header,callback){
         }
     })
     .then((response) => response.json())
+    .then((response) => {
+        callback(response);
+    }).done();
+}
+
+export function httpGetFile(url,params,header,callback){
+    if (params) {
+        let paramsArray = [];
+        //拼接参数
+        Object.keys(params).forEach(key => paramsArray.push(key + '=' + params[key]))
+        if (url.search(/\?/) === -1) {
+            url += '?' + paramsArray.join('&')
+        } else {
+            url += '&' + paramsArray.join('&')
+        }
+    }
+    //fetch请求
+    fetch(url,{
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            //'Content-Type': 'application/json',
+            'type' : header.type,
+            'account' : header.account,
+            'token' : header.token,
+            'responseType': 'arrayBUffer'
+        }
+    })
+    //.then((response) => response.json())
     .then((response) => {
         callback(response);
     }).done();

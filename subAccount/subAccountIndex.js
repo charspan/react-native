@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
-import { View,ScrollView,ListView,Modal,Text,Image,StyleSheet,TouchableOpacity,Alert } from 'react-native';
+import { View,ScrollView,ListView,Modal,Text,Image,ImageBackground,StyleSheet,TouchableOpacity,Alert } from 'react-native';
 import TextInputBar from '../my_component/TextInputBar';
 import ButtonItem from '../my_component/ButtonItem';
 import GatewayItem from '../my_component/GatewayItem';
 import "../GlobalValue";
-import {base_accountmanager_url,base_uidesigner_url,httpPostJson} from "../common"
+import {base_accountmanager_url,base_uidesigner_url,httpPostJson,httpGetFile} from "../common";
+import Login from '../login';
 
 /**
  * 复杂逻辑
@@ -101,7 +102,7 @@ export default class subAccountIndex extends Component{
         this.state={
             message: props.message, // 子账号登录后台返回的信息
             header: props.header, // 请求头部
-            navigator: props.navigator, // 导航
+           // navigator: props.navigator, // 导航
             /**
              * defaultBinding 存储结构
             {
@@ -126,13 +127,43 @@ export default class subAccountIndex extends Component{
             currentProject: {}, // 当前所处工程信息
             isRoomListShow: false, // 是否已经选中工程并打开 或者是否没有选定网关
         }
+        //console.log(props.message);
+        // 整合服务器返回的数据，将绑定关系和对应的权限整
+        // 遍历当前子账号每一个绑定关系
+        // item1:
+        // {
+        //     "id": 1407,
+        //     "superAccountId": 18,
+        //     "account": "future0005",
+        //     "superRelatedName": "公司本部",
+        //     "serialNumber": "88:4A:EA:C2:9E:4D",
+        //     "createTime": "2017-08-23 14:51:18.0"
+        // }
+        for(var i=0;i<props.message.bindings.length;i++){
+            // 遍历当前子账号的每一个权限信息
+            // item2:
+            // {
+            //    "superAccountId":1711,
+            //    "rightJson":"{\"380\":\".\",\"433\":\".1428.\",\"434\":\".1429.1430.1431.1432.1433.1434.\"}"
+            // }
+            for(var j=0;j<props.message.rights.length;j++){
+                if(this.state.message.bindings[i].superAccountId==this.state.message.rights[j].superAccountId){
+                    this.state.message.bindings[i].rightJson=this.state.message.rights[j].rightJson;
+                     // 将当前已经处理过的子账号移除
+                    this.state.message.rights.splice(j,1);
+                    break;
+                }
+            }
+           // console.log(JSON.stringify(this.state.message.bindings[i]));
+        }
+        this.state.message.rights=undefined;
         // 读取默认网关，设置默认网关和当前网关
         global.storage.load({
             key: 'defaultBinding',
             id: props.message.subAccount.id,
             autoSync: false,
           }).then(binding => {
-              console.log("打开后找到默认绑定网关",binding);
+             // console.log("打开后找到默认绑定网关",binding);
             // 读取默认网关，设置默认网关和当前网关
             this.setState({
                 defaultBinding: binding,
@@ -151,7 +182,7 @@ export default class subAccountIndex extends Component{
                     currentProject: project,
                     isRoomListShow: true
                   });
-                  console.log("打开后找到默认工程",JSON.stringify(this.state.currentProject));
+               //   console.log("打开后找到默认工程",JSON.stringify(this.state.currentProject));
               }).catch(err => {
                 // 读取不到默认工程，则加载工程列表,让用户选择工程
                 this.loadDefaultProjectList();
@@ -269,14 +300,58 @@ export default class subAccountIndex extends Component{
         //global.storage.remove({key:'currentBinding',id:this.props.message.subAccount.id});
     }
 
-    // 加载工程列表
+    // 加载工程列表数据
     loadDefaultProjectList=()=>{
-        httpPostJson(base_accountmanager_url+"/UIDesigner/"+this.state.currentBinding.superAccountId+"/projects",{},this.props.header,(res)=>{
+       var superAccountId=this.state.currentBinding.superAccountId;
+        httpPostJson(base_accountmanager_url+"/UIDesigner/"+superAccountId+"/projects",{},this.props.header,(res)=>{
           //  console.log(res.data.projectList);
-            this.setState({
-                projectList: res.data.projectList
-            });
-        })
+          if(res.errorcode==0){
+              //console.log(this.state.message);
+                for(var i=0;i<this.state.message.bindings.length;i++){
+                    if(this.state.message.bindings[i].superAccountId==superAccountId){
+                        if(this.state.message.bindings[i].rightJson==""||this.state.message.bindings[i].rightJson.indexOf('jurisdictionList')!=-1){//过滤公司的json结构
+                            //console.log(superAccountId,this.state.message.bindings[i].rightJson);
+                            // 设为都有权限
+                            this.setState({
+                                projectList: res.data.projectList
+                            });
+                        }else{
+                            // console.log(superAccountId,this.state.message.bindings[i].rightJson);
+                            var rightJson=JSON.parse(this.state.message.bindings[i].rightJson);
+                            //console.log(rightJson);
+                            var projectIds='';
+                            for(var key in rightJson){
+                                //console.log(key,rightJson[key]);
+                                projectIds+=key+"&";
+                            }
+                            var projectListReal=[];
+                            for(var i=0;i<res.data.projectList.length;i++){
+                                //console.log(res.data.projectList[i].id);
+                                if(projectIds.indexOf(res.data.projectList[i].id+"&")!=-1){
+                                    //console.log(projectIds.indexOf(res.data.projectList[i].id+"&"),res.data.projectList[i]);
+                                    projectListReal.push(res.data.projectList[i]);
+                                }
+                            }
+                            //console.log(projectListReal);
+                            this.setState({
+                                projectList: projectListReal
+                            });
+                        }
+                    }
+                }
+            }else{
+                Alert.alert('提示','你的账户在其他地方登陆!',
+                    [{text: '确定',
+                        onPress: () => {
+                            this.props.navigator.replace({
+                                name: 'Login',
+                                component: Login
+                            });
+                        }
+                    }]
+                ); 
+            }
+        });
     }
 
     /**
@@ -311,11 +386,29 @@ export default class subAccountIndex extends Component{
                             this.setState({
                                 currentProject: rowData
                             });
+                            console.log(this.state.currentBinding);
+                            httpPostJson(base_accountmanager_url+"UIDesigner/download1/"+rowData.id+"?superAccountId="+this.state.currentBinding.superAccountId,{},this.props.header,
+                            (res)=>{
+                                console.log(res);
+                                if(res.errorcode==0){
+                                 var url=base_uidesigner_url+"projects/"+res.data.url;//.replace('.uid','')+"/project.json";
+                                 console.log(url);
+                                 httpGetFile(url,{},{},(res)=>{
+                                     console.log(res);
+                                 })
+                                }
+                            });
                         }
                     }}
                 >
                     <View style={{flex:1,flexDirection:'row'}}>
-                        <Image source={rowData.phoneImgName==null||rowData.phoneImgName=='emptyImg'?require('../img/logo.png'):{uri: base_uidesigner_url+rowData.phoneImgName}} style={{width:60,height:60,marginLeft:10,margin:10}}/>
+                        <ImageBackground source={rowData.phoneImgName==null||rowData.phoneImgName=='emptyImg'?require('../img/logo.png'):{uri: base_uidesigner_url+rowData.phoneImgName}} style={{width:60,height:60,marginLeft:10,margin:10}}>
+                        {
+                            rowData.id==this.state.defaultProject.id ?
+                            <Text style={{color:'#FF7700',fontSize:20,fontWeight:'bold',textShadowColor:'#C0C0C0',textShadowRadius:2,textShadowOffset:{width:2,height:2}}}>默认</Text>
+                            : null
+                        }
+                        </ImageBackground>
                         <View style={{ justifyContent:'center'}}>
                             <Text style={{marginTop:5, fontSize:17,width:180}} numberOfLines={1}>名称:{rowData.name}</Text>
                             <Text style={{marginBottom:5, fontSize:13, color:'green',width:180}} numberOfLines={1}>备注:{rowData.remark}</Text>
@@ -402,9 +495,30 @@ export default class subAccountIndex extends Component{
                     </View>
                 </Modal>
 
-                <View style={{flexDirection:'column', justifyContent: 'center',height:50,backgroundColor:'red'}}>
-                    <Text style={{fontSize:20}} onPress={()=>this.setState({isGatewayShow: true})}>默认网关/工程：{this.state.defaultBinding.id}/{this.state.defaultProject.name}</Text>
-                    <Text style={{fontSize:20}} onPress={()=>this.setState({isGatewayShow: true})}>当前网关/工程：{this.state.currentBinding.id}/{this.state.currentProject.name}</Text>
+                <View style={{flexDirection:'row', alignItems:'center',justifyContent: 'flex-start',alignSelf:'flex-end',height:50,backgroundColor:'#ff2fd8',marginTop:10}}>
+                    <View style={{flexDirection:'column'}}>
+                    <Text style={{fontSize:10,padding:4}}>当前网关：{this.state.currentBinding.superRelatedName==undefined?"":this.state.currentBinding.superRelatedName}</Text>
+                    <Text style={{fontSize:10,padding:4}}>当前工程：{this.state.currentProject.name}</Text>
+                    </View>
+                    <TouchableOpacity
+                        onPress={()=>this.setState({isGatewayShow: true,isRoomListShow: true})}
+                    >
+                        <Image
+                            style={{width: 35,height: 35,alignSelf:'center'}}
+                            source={require('../img/unChecked.png')}
+                        />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={()=>{
+                            this.setState({isRoomListShow: false});
+                            this.loadDefaultProjectList();
+                        }}
+                    >
+                        <Image
+                            style={{width: 35,height: 35,alignSelf:'center'}}
+                            source={require('../img/unChecked.png')}
+                        />
+                    </TouchableOpacity>
                 </View>
                 
                 { 
