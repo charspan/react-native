@@ -20,6 +20,15 @@
 
 1. npm start -- --reset-cache
 
+## 注意
+
+1. 安装react-native-fs步骤
+
+    第一步：
+    npm install react-native-fs --save
+    第二步：
+    react-native link react-native-fs
+
 ## 进度
 
 1. 目前超级账号功能全部完成，有以下几点可以后续补充
@@ -28,3 +37,10 @@
 1. 新增app主题设置，夜间模式等
 2. 优化android界面加载速度，目前还是较慢，最慢时候大概3~5秒左右
 ~~~~
+
+
+复习android ios知识点
+
+1. Android sd卡使用权限
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>

@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
-import { View,ScrollView,ListView,Modal,Text,Image,ImageBackground,StyleSheet,TouchableOpacity,Alert } from 'react-native';
+import { View,ScrollView,ListView,Modal,Text,Image,ImageBackground,StyleSheet,TouchableOpacity,Alert,Platform } from 'react-native';
 import TextInputBar from '../my_component/TextInputBar';
 import ButtonItem from '../my_component/ButtonItem';
 import GatewayItem from '../my_component/GatewayItem';
 import "../GlobalValue";
-import {base_accountmanager_url,base_uidesigner_url,httpPostJson,httpGetFile} from "../common";
+import {base_accountmanager_url,base_uidesigner_url,httpPostJson} from "../common";
 import Login from '../login';
+import RNFS from 'react-native-fs';// 文件操作 下载
+import ProgressBar from '../my_component/ProgressBar';
 
 /**
  * 复杂逻辑
@@ -52,7 +54,7 @@ import Login from '../login';
  * ②. 设置默认工程相关逻辑
  *
  *          默认工程功能
- * ⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇   
+ * ⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇   
  * 情况一: 默认网关没有更换的情况（没有设置默认网关或者设置了默认网关且没有更换）
  *  if(默认网关是否已经设置){
  *      if(默认工程是否已经设置){
@@ -126,7 +128,11 @@ export default class subAccountIndex extends Component{
             defaultProject: {}, // 默认工程
             currentProject: {}, // 当前所处工程信息
             isRoomListShow: false, // 是否已经选中工程并打开 或者是否没有选定网关
+            basePath: Platform.OS!='ios'?`${RNFS.DocumentDirectoryPath}/`:`${RNFS.MainBundlePath}/`, // 默认ios平台路径
+            progressNum: 0, // 工程下载进度
         }
+        //  this.currProgress=0;
+        //   this.currBuffer=0;
         //console.log(props.message);
         // 整合服务器返回的数据，将绑定关系和对应的权限整
         // 遍历当前子账号每一个绑定关系
@@ -354,6 +360,16 @@ export default class subAccountIndex extends Component{
         });
     }
 
+    //功能：将浮点数四舍五入，取小数点后2位     
+ toDecimal(x) {   
+    var f = parseFloat(x);    
+  if (isNaN(f)) {   
+    return;    
+  }          
+  f = Math.round(x*100)/100;  
+  return f;        
+  }   
+
     /**
      * 渲染工程列表每一行
      * 
@@ -386,16 +402,49 @@ export default class subAccountIndex extends Component{
                             this.setState({
                                 currentProject: rowData
                             });
-                            console.log(this.state.currentBinding);
+                            //console.log(this.state.currentBinding);
                             httpPostJson(base_accountmanager_url+"UIDesigner/download1/"+rowData.id+"?superAccountId="+this.state.currentBinding.superAccountId,{},this.props.header,
                             (res)=>{
-                                console.log(res);
+                                //console.log(res);
                                 if(res.errorcode==0){
-                                 var url=base_uidesigner_url+"projects/"+res.data.url;//.replace('.uid','')+"/project.json";
-                                 console.log(url);
-                                 httpGetFile(url,{},{},(res)=>{
-                                     console.log(res);
-                                 })
+                                    // 创建用户文件夹，以超级账号编号为名
+                                    RNFS.mkdir(this.state.basePath+res.data.url.substr(0, res.data.url.indexOf('/')));
+                                    // 文件下载地址
+                                    var fromUrl=base_uidesigner_url+"projects/"+res.data.url;//.replace('.uid','')+"/project.json";
+                                    ///console.log("下载地址: ",fromUrl);
+                                    // 文件存储地址
+                                    const downloadDest = this.state.basePath+res.data.url;
+                                 console.log("保存地址: ",downloadDest);
+                                    const options = {
+                                        fromUrl: fromUrl,
+                                        toFile: downloadDest,
+                                        background: true,
+                                        begin: (res) => {
+                                          console.log('begin', res);
+                                          console.log('contentLength:', res.contentLength / 1024 / 1024, 'M');
+                                          this.progressBar.mod(0);
+                                          
+                                        },
+                                        progress: (res) => {
+
+                                            //var pro =this.toDecimal(res.bytesWritten / res.contentLength);
+                                            this.setState({
+                                                progressNum: res.bytesWritten / res.contentLength,
+                                            });  
+                                            console.log(this.state.progressNum);
+                                           this.progressBar.mod(this.state.progressNum);
+
+                                            
+                                        }
+                                    };
+                                    const ret = RNFS.downloadFile(options);
+                                    ret.promise.then(res => {
+                                        this.setState({
+                                            progressNum: 1,
+                                        });
+                                    }).catch(err => {
+                                        console.log('err', err);
+                                    });
                                 }
                             });
                         }
@@ -412,6 +461,17 @@ export default class subAccountIndex extends Component{
                         <View style={{ justifyContent:'center'}}>
                             <Text style={{marginTop:5, fontSize:17,width:180}} numberOfLines={1}>名称:{rowData.name}</Text>
                             <Text style={{marginBottom:5, fontSize:13, color:'green',width:180}} numberOfLines={1}>备注:{rowData.remark}</Text>
+                            
+                            <ProgressBar
+                                ref={node=>this.progressBar=node}
+                                progress={0.1}
+                                progressColor='red'
+                                style={{
+                                    marginTop:10,
+                                    width: 100
+                                }}
+                            />
+
                         </View>
                     </View>
                 </TouchableOpacity>
