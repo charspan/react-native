@@ -7,7 +7,6 @@ import "../GlobalValue";
 import {base_accountmanager_url,base_uidesigner_url,httpPostJson} from "../common";
 import Login from '../login';
 import RNFS from 'react-native-fs';// 文件操作 下载
-import ProgressBar from '../my_component/ProgressBar';
 
 /**
  * 复杂逻辑
@@ -129,7 +128,7 @@ export default class subAccountIndex extends Component{
             currentProject: {}, // 当前所处工程信息
             isRoomListShow: false, // 是否已经选中工程并打开 或者是否没有选定网关
             basePath: Platform.OS!='ios'?`${RNFS.DocumentDirectoryPath}/`:`${RNFS.MainBundlePath}/`, // 默认ios平台路径
-            progressNum: 0, // 工程下载进度
+            progress: "0.00%", // 当前工程下载进度
         }
         //  this.currProgress=0;
         //   this.currBuffer=0;
@@ -245,7 +244,7 @@ export default class subAccountIndex extends Component{
                         defaultProject: {}
                     });
                 }
-                console.log("网关仅打开一次");
+               // console.log("网关仅打开一次");
                 // 加载工程列表
                 this.loadDefaultProjectList();  
             }else{// 当前网关和默认的网关一样，尝试读取默认工程
@@ -260,7 +259,7 @@ export default class subAccountIndex extends Component{
                         currentProject: project,
                         isRoomListShow: true
                       });
-                      console.log("切换回来 读取到默认工程",this.state.currentProject);
+                   //   console.log("切换回来 读取到默认工程",this.state.currentProject);
                   }).catch(err => {
                     // 读取不到默认工程，则加载工程列表,让用户选择工程
                     this.setState({
@@ -358,17 +357,7 @@ export default class subAccountIndex extends Component{
                 ); 
             }
         });
-    }
-
-    //功能：将浮点数四舍五入，取小数点后2位     
- toDecimal(x) {   
-    var f = parseFloat(x);    
-  if (isNaN(f)) {   
-    return;    
-  }          
-  f = Math.round(x*100)/100;  
-  return f;        
-  }   
+    } 
 
     /**
      * 渲染工程列表每一行
@@ -386,68 +375,11 @@ export default class subAccountIndex extends Component{
     renderRow=(rowData,sectionID, rowID)=> {
     // console.log(JSON.stringify(rowData));
         return (
+            
             <View style={{flexDirection:'row'}}>
                 <TouchableOpacity
-                    style={{flex:2,}}
                     onPress={()=>{
-                        // 默认网关是否已经选中（没选中默认网关的情况下不能设置默认工程）且 当前的网关必须等于默认网关 才能选择默认工程
-                        if(this.state.defaultBinding.id!=undefined&&this.state.defaultBinding.id==this.state.currentBinding.id){
-                            this.setState({
-                                currentProject: rowData,
-                                isOpenProjectOptionShow: true
-                            });
-                        }else{
-                            // 直接进入,当前选中的工程
-                            console.log("没选中默认网关的情况下不能设置默认工程，所以直接打开");
-                            this.setState({
-                                currentProject: rowData
-                            });
-                            //console.log(this.state.currentBinding);
-                            httpPostJson(base_accountmanager_url+"UIDesigner/download1/"+rowData.id+"?superAccountId="+this.state.currentBinding.superAccountId,{},this.props.header,
-                            (res)=>{
-                                //console.log(res);
-                                if(res.errorcode==0){
-                                    // 创建用户文件夹，以超级账号编号为名
-                                    RNFS.mkdir(this.state.basePath+res.data.url.substr(0, res.data.url.indexOf('/')));
-                                    // 文件下载地址
-                                    var fromUrl=base_uidesigner_url+"projects/"+res.data.url;//.replace('.uid','')+"/project.json";
-                                    ///console.log("下载地址: ",fromUrl);
-                                    // 文件存储地址
-                                    const downloadDest = this.state.basePath+res.data.url;
-                                 console.log("保存地址: ",downloadDest);
-                                    const options = {
-                                        fromUrl: fromUrl,
-                                        toFile: downloadDest,
-                                        background: true,
-                                        begin: (res) => {
-                                          console.log('begin', res);
-                                          console.log('contentLength:', res.contentLength / 1024 / 1024, 'M');
-                                          this.progressBar.mod(0);
-                                          
-                                        },
-                                        progress: (res) => {
-
-                                            //var pro =this.toDecimal(res.bytesWritten / res.contentLength);
-                                            this.setState({
-                                                progressNum: res.bytesWritten / res.contentLength,
-                                            });  
-                                            console.log(this.state.progressNum);
-                                           this.progressBar.mod(this.state.progressNum);
-
-                                            
-                                        }
-                                    };
-                                    const ret = RNFS.downloadFile(options);
-                                    ret.promise.then(res => {
-                                        this.setState({
-                                            progressNum: 1,
-                                        });
-                                    }).catch(err => {
-                                        console.log('err', err);
-                                    });
-                                }
-                            });
-                        }
+                        console.log(22);
                     }}
                 >
                     <View style={{flex:1,flexDirection:'row'}}>
@@ -461,29 +393,78 @@ export default class subAccountIndex extends Component{
                         <View style={{ justifyContent:'center'}}>
                             <Text style={{marginTop:5, fontSize:17,width:180}} numberOfLines={1}>名称:{rowData.name}</Text>
                             <Text style={{marginBottom:5, fontSize:13, color:'green',width:180}} numberOfLines={1}>备注:{rowData.remark}</Text>
-                            
-                            <ProgressBar
-                                ref={node=>this.progressBar=node}
-                                progress={0.1}
-                                progressColor='red'
-                                style={{
-                                    marginTop:10,
-                                    width: 100
-                                }}
-                            />
-
                         </View>
                     </View>
                 </TouchableOpacity>
-                <View style={{flex:1,flexDirection:'row',justifyContent:'center'}}>
+                <View style={{flex:1,flexDirection:'row'}}>
+                    <TouchableOpacity
+                        style={{alignSelf:'center'}}
+                        onPress={()=>{
+                            // 默认网关是否已经选中（没选中默认网关的情况下不能设置默认工程）且 当前的网关必须等于默认网关 才能选择默认工程
+                            if(this.state.defaultBinding.id!=undefined&&this.state.defaultBinding.id==this.state.currentBinding.id){
+                                this.setState({
+                                    currentProject: rowData,
+                                    isOpenProjectOptionShow: true
+                                });
+                            }else{
+                                // 直接进入,当前选中的工程
+                                console.log("没选中默认网关的情况下不能设置默认工程，所以直接打开");
+                                this.setState({
+                                    currentProject: rowData
+                                });
+                                //console.log(this.state.currentBinding);
+                                httpPostJson(base_accountmanager_url+"UIDesigner/download1/"+rowData.id+"?superAccountId="+this.state.currentBinding.superAccountId,{},this.props.header,
+                                (res)=>{
+                                    //console.log(res);
+                                    if(res.errorcode==0){
+                                        // 创建用户文件夹，以超级账号编号为名
+                                        RNFS.mkdir(this.state.basePath+res.data.url.substr(0, res.data.url.indexOf('/')));
+                                        // 文件下载地址
+                                        var fromUrl=base_uidesigner_url+"projects/"+res.data.url;//.replace('.uid','')+"/project.json";
+                                        ///console.log("下载地址: ",fromUrl);
+                                        // 文件存储地址
+                                        const downloadDest = this.state.basePath+res.data.url;
+                                        const options = {
+                                            fromUrl: fromUrl,
+                                            toFile: downloadDest,
+                                            background: false,
+                                            begin: (res) => {
+                                                this.setState({
+                                                    progress: "0.00%"
+                                                });
+                                            },
+                                            progress: (res) => {
+                                                this.setState({
+                                                    progress: ((res.bytesWritten / res.contentLength)*100).toFixed(2)+"%"
+                                                });
+                                            }
+                                        };
+                                        const ret = RNFS.downloadFile(options);
+                                        ret.promise.then(res => {
+                                            console.log("下载成功 ",downloadDest);
+                                            this.setState({
+                                                progress: "100.00%"
+                                            });
+                                            setTimeout(()=>{this.setState({progress: "0.00%"});},1000);
+                                        }).catch(err => {
+                                        
+                                        });
+                                    }
+                                });
+                            }
+                        }}
+                    >
+                        <Image
+                            // 打开工程 自动下载
+                            style={{width: 35,height: 35,alignSelf:'center'}}
+                            source={require('../img/unChecked.png')}
+                        />
+                    </TouchableOpacity>
                     <Image
+                    // 设置为默认
                         style={{width: 35,height: 35,alignSelf:'center'}}
-                        source={require('../img/unChecked.png')}
-                    />
-                    <Image
-                        style={{width: 35,height: 35,alignSelf:'center'}}
-                        source={require('../img/unChecked.png')}
-                    />
+                        source={require('../img/setting.png')}
+                    /> 
                 </View>
             </View>
         );
@@ -529,7 +510,7 @@ export default class subAccountIndex extends Component{
                             <Text style={{fontSize:20,color:'white',padding:10}}>是否收藏: {this.state.currentProject.isCollect==1?"是":"否"}</Text>
                             <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center',marginTop:10}}>
                                 <ButtonItem label="仅打开一次" func={()=>{
-                                  console.log("一次性工程",this.state.currentProject);
+                                 // console.log("一次性工程",this.state.currentProject);
                                   this.setState({
                                         isRoomListShow:true,
                                         isOpenProjectOptionShow: false
@@ -550,6 +531,32 @@ export default class subAccountIndex extends Component{
                                         isRoomListShow:true
                                     });
                                 }}/>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+
+                <Modal // 下载工程状态模态窗口
+                    visible={this.state.progress!="0.00%"}
+                    // 从下面向上滑动 slide
+                    // 慢慢显示 fade
+                    animationType = "fade"
+                    // 是否透明默认是不透明 false
+                    transparent = {true}
+                    // 关闭时调用
+                    onRequestClose={()=>{}}
+                >
+                    <View style={{flex:1,justifyContent: 'center',backgroundColor:'rgba(0,0,0,0.8)'}}>
+                        <View style={{padding:20,height:200, backgroundColor:'rgba(255,255,255,0.8)'}}>
+                            <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
+                                <Text style={{fontSize:24,marginBottom:10}}>加载详情</Text>
+                            </View>
+                            <View>
+                                <Text>进度：{this.state.progress}</Text> 
+                                <Text>{this.state.progress=="100.00%"?"下载成功，正在为您加载...":null}</Text> 
+                                {
+                                    //this.state.progress=="100.00%"?(setTimeout(()=>{this.setState({progress: "0.00%"});},1000)):null
+                                }
                             </View>
                         </View>
                     </View>
@@ -601,8 +608,8 @@ export default class subAccountIndex extends Component{
                             // 房间列表
                             <Text stye={{color:"white",fontSize:20}}
                                 onpress={()=>{
-                                    console.log("当前网关",this.state.currentBinding);
-                                    console.log("当前工程",this.state.currentProject);
+                                    // console.log("当前网关",this.state.currentBinding);
+                                    // console.log("当前工程",this.state.currentProject);
                                 }}
                             >我已经确认当前的网关和当前的工程，现在可以展示房间了</Text>
                         ) : null
@@ -621,6 +628,6 @@ const styles = StyleSheet.create({
     img: {
         width: 35,
         height: 35,
-        alignSelf: 'center'
+        alignSelf: 'center',
     },
 });

@@ -38,14 +38,7 @@ export default class ProgressBar extends Component {
         this._bufferAni = new Animated.Value(0);
     }
 
-
-    mod(progress1){
-        this._startAniProgress(progress1)
-        
-    }
-
     componentWillReceiveProps(nextProps) {
-       // console.log(nextProps);
         this._progress = nextProps.progress;
         this._buffer = nextProps.buffer;
     }
