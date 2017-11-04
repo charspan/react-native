@@ -400,18 +400,18 @@ export default class subAccountIndex extends Component{
                     <TouchableOpacity
                         style={{alignSelf:'center'}}
                         onPress={()=>{
-                            // 默认网关是否已经选中（没选中默认网关的情况下不能设置默认工程）且 当前的网关必须等于默认网关 才能选择默认工程
-                            if(this.state.defaultBinding.id!=undefined&&this.state.defaultBinding.id==this.state.currentBinding.id){
-                                this.setState({
-                                    currentProject: rowData,
-                                    isOpenProjectOptionShow: true
-                                });
-                            }else{
-                                // 直接进入,当前选中的工程
-                                console.log("没选中默认网关的情况下不能设置默认工程，所以直接打开");
-                                this.setState({
-                                    currentProject: rowData
-                                });
+                            // // 默认网关是否已经选中（没选中默认网关的情况下不能设置默认工程）且 当前的网关必须等于默认网关 才能选择默认工程
+                            // if(this.state.defaultBinding.id!=undefined&&this.state.defaultBinding.id==this.state.currentBinding.id){
+                            //     this.setState({
+                            //         currentProject: rowData,
+                            //         isOpenProjectOptionShow: true
+                            //     });
+                            // }else{
+                                // // 直接进入,当前选中的工程
+                                // console.log("没选中默认网关的情况下不能设置默认工程，所以直接打开");
+                                // this.setState({
+                                //     currentProject: rowData
+                                // });
                                 //console.log(this.state.currentBinding);
                                 httpPostJson(base_accountmanager_url+"UIDesigner/download1/"+rowData.id+"?superAccountId="+this.state.currentBinding.superAccountId,{},this.props.header,
                                 (res)=>{
@@ -441,17 +441,19 @@ export default class subAccountIndex extends Component{
                                         };
                                         const ret = RNFS.downloadFile(options);
                                         ret.promise.then(res => {
-                                            console.log("下载成功 ",downloadDest);
+                                            //console.log("下载成功 ",downloadDest);
                                             this.setState({
-                                                progress: "100.00%"
+                                                progress: "100.00%", // 隐藏下载信息
+                                                currentProject: rowData, // 确定当前工程
+                                                isRoomListShow: true, // 显示房间信息
                                             });
-                                            setTimeout(()=>{this.setState({progress: "0.00%"});},1000);
+                                            // 加载工程的房间信息
+                                            
                                         }).catch(err => {
-                                        
                                         });
                                     }
                                 });
-                            }
+                            // }
                         }}
                     >
                         <Image
@@ -537,7 +539,7 @@ export default class subAccountIndex extends Component{
                 </Modal>
 
                 <Modal // 下载工程状态模态窗口
-                    visible={this.state.progress!="0.00%"}
+                    visible={this.state.progress!="0.00%"&&this.state.progress!="100.00%"}
                     // 从下面向上滑动 slide
                     // 慢慢显示 fade
                     animationType = "fade"
@@ -553,10 +555,7 @@ export default class subAccountIndex extends Component{
                             </View>
                             <View>
                                 <Text>进度：{this.state.progress}</Text> 
-                                <Text>{this.state.progress=="100.00%"?"下载成功，正在为您加载...":null}</Text> 
-                                {
-                                    //this.state.progress=="100.00%"?(setTimeout(()=>{this.setState({progress: "0.00%"});},1000)):null
-                                }
+                                <Text>{this.state.progress=="100.00%"?"下载成功，正在为您加载...":null}</Text>
                             </View>
                         </View>
                     </View>
