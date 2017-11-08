@@ -29,6 +29,13 @@
     第二步：
     react-native link react-native-fs
 
+2. 安装 react-native-zip-archive
+  
+  第一步
+  npm install react-native-zip-archive
+  第二部
+  react-native link react-native-zip-archive
+
 ## 进度
 
 1. 目前超级账号功能全部完成，有以下几点可以后续补充

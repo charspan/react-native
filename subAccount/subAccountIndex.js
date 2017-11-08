@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View,ScrollView,ListView,Modal,Text,Image,ImageBackground,StyleSheet,TouchableOpacity,Alert,Platform } from 'react-native';
+import { View,ScrollView,ListView,Modal,Text,Image,ImageBackground,StyleSheet,TouchableOpacity,TouchableHighlight,Alert,Platform } from 'react-native';
 import TextInputBar from '../my_component/TextInputBar';
 import ButtonItem from '../my_component/ButtonItem';
 import GatewayItem from '../my_component/GatewayItem';
@@ -7,6 +7,7 @@ import "../GlobalValue";
 import {base_accountmanager_url,base_uidesigner_url,httpPostJson} from "../common";
 import Login from '../login';
 import RNFS from 'react-native-fs';// 文件操作 下载
+import Zip from 'react-native-zip-archive';
 
 /**
  * 复杂逻辑
@@ -95,7 +96,6 @@ import RNFS from 'react-native-fs';// 文件操作 下载
  * 4. 用布尔变量 isRoomListShow 来控制是否显示工程列表和房间列表
  * 
  */
-
 export default class subAccountIndex extends Component{
 
     constructor(props){
@@ -129,6 +129,7 @@ export default class subAccountIndex extends Component{
             isRoomListShow: false, // 是否已经选中工程并打开 或者是否没有选定网关
             basePath: Platform.OS!='ios'?`${RNFS.DocumentDirectoryPath}/`:`${RNFS.MainBundlePath}/`, // 默认ios平台路径
             progress: "0.00%", // 当前工程下载进度
+            roomList: [], // 房间列表信息，工程信息放在房间列表的最后
         }
         //  this.currProgress=0;
         //   this.currBuffer=0;
@@ -339,7 +340,8 @@ export default class subAccountIndex extends Component{
                             }
                             //console.log(projectListReal);
                             this.setState({
-                                projectList: projectListReal
+                                projectList: projectListReal,
+                                roomList: [] // 清除房间列表
                             });
                         }
                     }
@@ -375,7 +377,6 @@ export default class subAccountIndex extends Component{
     renderRow=(rowData,sectionID, rowID)=> {
     // console.log(JSON.stringify(rowData));
         return (
-            
             <View style={{flexDirection:'row'}}>
                 <TouchableOpacity
                     onPress={()=>{
@@ -441,14 +442,40 @@ export default class subAccountIndex extends Component{
                                         };
                                         const ret = RNFS.downloadFile(options);
                                         ret.promise.then(res => {
-                                            //console.log("下载成功 ",downloadDest);
+                                            console.log("下载成功 ",downloadDest);
                                             this.setState({
                                                 progress: "100.00%", // 隐藏下载信息
                                                 currentProject: rowData, // 确定当前工程
                                                 isRoomListShow: true, // 显示房间信息
                                             });
                                             // 加载工程的房间信息
-                                            
+                                            // 1. 解压下载的文件 
+                                            Zip.unzip(downloadDest,downloadDest.replace('.uid',''));
+                                            // 2. 读取project.json
+                                            setTimeout(()=>{
+                                                RNFS.readFile(downloadDest.replace('.uid','')+"/project.json")
+                                                .then((result) => {
+                                                    var res=JSON.parse(result);
+                                                    console.log(JSON.parse(result));
+                                                    // 整合界面所需的数据，将工程信息放置到房间列表的末尾
+                                                    var index=res.roomList.length;
+                                                    res.roomList[index]={};
+                                                    res.roomList[index].id=res.id;
+                                                    res.roomList[index].remark=res.remark;
+                                                    res.roomList[index].phoneImgName=res.phoneImgName;
+                                                    res.roomList[index].userId=res.userId;
+                                                    res.roomList[index].name=res.name;
+                                                    res.roomList[index].layerList=res.layerList;
+                                                    res.roomList[index].img=res.img;
+                                                    res.roomList[index].version=res.version;
+                                                   // console.log(res.roomList);
+                                                    this.setState({
+                                                        roomList: res.roomList
+                                                    });
+                                                }).catch(err => {
+                                                    console.log(err);
+                                                });
+                                            },1000);
                                         }).catch(err => {
                                         });
                                     }
@@ -469,6 +496,26 @@ export default class subAccountIndex extends Component{
                     /> 
                 </View>
             </View>
+        );
+    }
+
+    renderRow1=(rowData,sectionID, rowID)=>{
+        return(<TouchableHighlight underlayColor="red"
+                onPress={()=>{
+                        console.log(this.state.basePath,JSON.stringify(rowData));
+                        Alert.alert('房间详情',JSON.stringify(rowData),[{text: '确定'}]);
+                    }}
+                >
+                <View style={styles.row}> 
+                    <Image style={styles.thumb} 
+                    //source={{uri:base_uidesigner_url+"projects/"+rowData.img}} 
+                    source={{uri:'file://'+this.state.basePath+rowData.img}}
+                    />
+                    <Text style={styles.text}>
+                    {rowData.name}
+                    </Text>
+                </View>
+            </TouchableHighlight>  
         );
     }
 
@@ -539,7 +586,7 @@ export default class subAccountIndex extends Component{
                 </Modal>
 
                 <Modal // 下载工程状态模态窗口
-                    visible={this.state.progress!="0.00%"&&this.state.progress!="100.00%"}
+                    visible={this.state.progress!="0.00%"}
                     // 从下面向上滑动 slide
                     // 慢慢显示 fade
                     animationType = "fade"
@@ -549,14 +596,28 @@ export default class subAccountIndex extends Component{
                     onRequestClose={()=>{}}
                 >
                     <View style={{flex:1,justifyContent: 'center',backgroundColor:'rgba(0,0,0,0.8)'}}>
-                        <View style={{padding:20,height:200, backgroundColor:'rgba(255,255,255,0.8)'}}>
+                        <View style={{padding:20,height:120, backgroundColor:'rgba(255,255,255,0.8)'}}>
                             <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
-                                <Text style={{fontSize:24,marginBottom:10}}>加载详情</Text>
+                                <Text style={{fontSize:24,marginBottom:10}}>下载详情</Text>
                             </View>
-                            <View>
-                                <Text>进度：{this.state.progress}</Text> 
-                                <Text>{this.state.progress=="100.00%"?"下载成功，正在为您加载...":null}</Text>
+                            <View style={{flexDirection:'row',alignItems:'center',marginBottom:5}}>
+                                <Text style={{fontSize:18}}>进度：</Text>
+                                <View style={{flexDirection:'row',backgroundColor:'red',width:200,height:10,marginRight:20}}>
+                                    <View style={{width:this.state.progress,backgroundColor:'blue'}}></View>
+                                </View>
+                                <Text style={{alignSelf:'center'}}>{this.state.progress}</Text>
                             </View>
+                            <Text>{this.state.progress=="100.00%"?"下载成功，正在为您加载...":"正在下载工程,请您耐心等待..."}</Text>
+                            <Text style={{width:0,height:0}}>
+                            {
+                               this.state.progress=="100.00%" ? 
+                                    setTimeout(()=>{
+                                        this.setState({
+                                            progress: "0.00%"
+                                        });
+                                    },1000) : null 
+                            }
+                            </Text>
                         </View>
                     </View>
                 </Modal>
@@ -604,13 +665,32 @@ export default class subAccountIndex extends Component{
                         </View>
                     ) : (
                         this.state.currentProject.id != undefined ? (
-                            // 房间列表
-                            <Text stye={{color:"white",fontSize:20}}
-                                onpress={()=>{
-                                    // console.log("当前网关",this.state.currentBinding);
-                                    // console.log("当前工程",this.state.currentProject);
-                                }}
-                            >我已经确认当前的网关和当前的工程，现在可以展示房间了</Text>
+                             //房间列表
+                            <View  style={{justifyContent: 'center',flex:1}}>
+                                    {/* <TouchableOpacity
+                                    onpress={()=>{
+                                            console.log(21232);
+                                        }}
+                                    >
+                                        <Text stye={{color:"white",fontSize:20,height:100,width:50,backgroundColor:'red'}}
+                                            onpress={()=>{
+                                                console.log("当前网关",this.state.currentBinding);
+                                                console.log("当前工程",this.state.currentProject);
+                                            }}
+                                            
+                                        >我已经确认当前的网关和当前的工程，现在可以展示房间了</Text>
+                                        </TouchableOpacity> */}
+                                <Text style={{justifyContent:'center',alignSelf:'center',fontSize:24,padding:5}}>房间列表</Text>
+                                <ListView
+                                    removeClippedSubviews={true}
+                                    enableEmptySections={true}
+                                    dataSource={this.state.dataSource.cloneWithRows(this.state.roomList)}
+                                    renderRow={this.renderRow1}
+                                    showsVerticalScrollIndicator={false}
+                                    initialListSize={8}
+                                    contentContainerStyle={styles.list}
+                                />
+                            </View>
                         ) : null
                     )
                 }
@@ -629,4 +709,31 @@ const styles = StyleSheet.create({
         height: 35,
         alignSelf: 'center',
     },
+    list: {  
+        marginTop:5,  
+        justifyContent: 'space-around',  
+        flexDirection: 'row',  
+        flexWrap: 'wrap'  
+      }, 
+      row: {  
+        justifyContent: 'center',  
+        padding: 5,  
+        margin: 3,  
+        width: 85,  
+        height: 85,  
+        backgroundColor: '#F6F6F6',  
+        alignItems: 'center',  
+        borderWidth: 1,  
+        borderRadius: 5,  
+        borderColor: '#CCC'  
+      },  
+      thumb: {  
+        width: 65,  
+        height: 50  
+      },  
+      text: {  
+        flex: 1,  
+        marginTop: 5,  
+        fontWeight: 'bold'  
+      },  
 });
